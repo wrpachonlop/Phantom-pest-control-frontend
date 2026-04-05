@@ -1,9 +1,7 @@
 "use client";
-
+import { createClient } from "../src/lib/supabase/client"; // Importa tu utilidad, no la de la librería directamente
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
-import { createBrowserClient } from "@/services/supabase";
-import { SessionContextProvider } from "@supabase/auth-helpers-react";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -19,13 +17,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
       })
   );
 
-  const supabase = createBrowserClient();
-
+// Creamos el cliente de Supabase usando el nuevo paquete SSR
+  const [supabase] = useState(() =>createClient());
   return (
-    <SessionContextProvider supabaseClient={supabase}>
       <QueryClientProvider client={queryClient}>
         {children}
       </QueryClientProvider>
-    </SessionContextProvider>
   );
 }
