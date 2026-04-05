@@ -4,9 +4,8 @@
 // The Supabase access_token is injected automatically.
 // =============================================================
 
-import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import type {
+import axios, { AxiosInstance } from "axios";
+import { createBrowserClient } from "@/services/supabaseClient";import type {
   Client,
   ClientFull,
   CreateClientForm,
@@ -34,7 +33,7 @@ const http: AxiosInstance = axios.create({
 
 // Inject fresh JWT before every request
 http.interceptors.request.use(async (config) => {
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (session?.access_token) {
     config.headers.Authorization = `Bearer ${session.access_token}`;

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { createBrowserClient } from "@/services/supabase";
+import { createBrowserClient } from "@/services/supabaseClient";
 import { usersApi } from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";

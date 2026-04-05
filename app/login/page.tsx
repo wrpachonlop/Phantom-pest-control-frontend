@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createBrowserClient, ALLOWED_DOMAIN } from "@/services/supabase";
+import { createBrowserClient, ALLOWED_DOMAIN } from "@/services/supabaseClient";
 import Image from "next/image";
 
 export default function LoginPage() {
