@@ -11,6 +11,9 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/dashboard";
 
+  console.log("--- AUTH CALLBACK START ---");
+  console.log("Code present:", !!code);
+
   if (code) {
     const cookieStore = await cookies();
     
@@ -76,6 +79,6 @@ export async function GET(request: Request) {
       return response;
     }
   }
-
+  console.log("Auth failed: No code or no session");
   return NextResponse.redirect(`${origin}/login?error=auth_failed`);
 }

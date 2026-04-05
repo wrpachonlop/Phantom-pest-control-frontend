@@ -2,14 +2,14 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  // 1. Creamos una respuesta base
+    const { pathname } = request.nextUrl;
+  console.log(`--- MIDDLEWARE START: ${pathname} ---`);
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   })
 
-  // 2. Inicializamos el cliente de Supabase especial para Middleware
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -31,34 +31,36 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // 3. Verificamos la identidad del usuario
-  // Importante: usar getUser() por seguridad, no getSession()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  // 4. Lógica de protección:
-  // Si NO hay usuario y trata de entrar al dashboard -> al Login
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  // IMPORTANTE: En Next.js 15/App Router, getUser es la forma segura
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error) {
+    console.log("Middleware User Error (Normal if not logged):", error.message);
   }
 
-  // Si YA hay usuario y trata de ir al login o raíz -> al Dashboard
-  if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/')) {
+  console.log("User in Middleware:", user ? user.email : "NO USER");
+
+  const isDashboard = request.nextUrl.pathname.startsWith('/dashboard')
+  const isLoginPage = request.nextUrl.pathname === '/login'
+
+  // 1. Si no hay usuario y quiere entrar al dashboard -> AL LOGIN
+  if (!user && isDashboard) {
+    const url = new URL('/login', request.url)
+    // Guardamos a dónde quería ir para volver luego
+    url.searchParams.set('next', request.nextUrl.pathname)
+    return NextResponse.redirect(url)
+  }
+
+  // 2. Si YA hay usuario y está en el login -> AL DASHBOARD
+  if (user && isLoginPage) {
+    console.log("Redirecting to Login: Protected route & No user");
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   return response
 }
 
-// 5. Configuración del Matcher: qué rutas debe vigilar este archivo
 export const config = {
   matcher: [
-    /*
-     * Coincide con todas las rutas excepto:
-     * - _next/static (archivos estáticos)
-     * - _next/image (optimización de imágenes)
-     * - favicon.ico (icono del sitio)
-     * - imágenes (svg, png, jpg, etc)
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
