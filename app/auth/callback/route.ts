@@ -1,22 +1,22 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-// Usamos el dominio fijo de la empresa
 const ALLOWED_DOMAIN = "phantompestcontrol.ca";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  // "next" es el parámetro opcional para redirigir después del login
   const next = searchParams.get("next") ?? "/dashboard";
 
   if (code) {
     const cookieStore = await cookies();
     
-    // 1. Creamos el cliente SSR manual para el Route Handler
+    // 1. Creamos una respuesta base para poder adjuntarle las cookies manualmente
+    const response = NextResponse.redirect(`${origin}${next}`);
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -25,22 +25,27 @@ export async function GET(request: Request) {
           getAll() {
             return cookieStore.getAll();
           },
-          setAll(cookiesToSet: { name: any; value: any; options: any; }[]) {
+          setAll(cookiesToSet: any[]) {
+            // Seteamos en el store de Next.js
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
+            );
+            // ¡ESTO ES LO IMPORTANTE!: Seteamos también en la respuesta que vamos a retornar
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
             );
           },
         },
       }
     );
 
-    // 2. Intercambiamos el código por una sesión real
+    // 2. Intercambio de código
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error && data.session) {
       const email = data.session.user.email || "";
 
-      // 3. Verificación de dominio de seguridad (Phantom Pest Control Only)
+      // 3. Verificación de dominio
       if (!email.endsWith(`@${ALLOWED_DOMAIN}`)) {
         await supabase.auth.signOut();
         return NextResponse.redirect(
@@ -48,15 +53,14 @@ export async function GET(request: Request) {
         );
       }
 
-      // 4. Sincronización con tu backend de Go (CRM Sync)
-      const accessToken = data.session.access_token;
-      if (accessToken && process.env.NEXT_PUBLIC_API_URL) {
+      // 4. Sincronización con Go
+      if (process.env.NEXT_PUBLIC_API_URL) {
         try {
           await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me/sync`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
+              Authorization: `Bearer ${data.session.access_token}`,
             },
             body: JSON.stringify({
               full_name: data.session.user.user_metadata?.full_name,
@@ -68,10 +72,10 @@ export async function GET(request: Request) {
         }
       }
 
-      return NextResponse.redirect(`${origin}${next}`);
+      // Retornamos la respuesta que ya trae las cookies inyectadas
+      return response;
     }
   }
 
-  // Si algo falla, regresamos al login
   return NextResponse.redirect(`${origin}/login?error=auth_failed`);
 }
