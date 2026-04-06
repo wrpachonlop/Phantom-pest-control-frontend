@@ -42,11 +42,16 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md">
         {/* Logo / Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 mb-4">
+          <div className="inline-flex h-32 w-80 items-center justify-center rounded-2xl bg-white/100 backdrop-blur-sm border border-white/20 mb-4">
             {/* Ghost icon SVG */}
-            <svg className="h-9 w-9 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12v9l3-3 3 3 3-3 3 3 3-3v-9c0-5.52-4.48-10-10-10zm-3.5 11c-.83 0-1.5-.67-1.5-1.5S7.67 10 8.5 10s1.5.67 1.5 1.5S9.33 13 8.5 13zm7 0c-.83 0-1.5-.67-1.5-1.5S14.67 10 15.5 10s1.5.67 1.5 1.5S16.33 13 15.5 13z"/>
-            </svg>
+            <Image 
+              src="/phantom-logo.png" // <-- Cambia esto por el nombre exacto de tu archivo en /public
+              alt="Phantom Pest Control Logo"
+              width={240}  // Equivalente a w-14 de Tailwind
+              height={240} // Equivalente a h-14 de Tailwind
+              priority    // Carga esta imagen primero (esencial para el LCP)
+              className="object-contain p-1" // Asegura que no se deforme y tenga aire
+            />
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">
             Phantom Pest Control
