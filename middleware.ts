@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
-  console.log(`--- MIDDLEWARE START: ${pathname} ---`);
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -33,11 +33,6 @@ export async function middleware(request: NextRequest) {
 
   // IMPORTANTE: En Next.js 15/App Router, getUser es la forma segura
   const { data: { user }, error } = await supabase.auth.getUser()
-  if (error) {
-    console.log("Middleware User Error (Normal if not logged):", error.message);
-  }
-
-  console.log("User in Middleware:", user ? user.email : "NO USER");
 
   const isDashboard = request.nextUrl.pathname.startsWith('/dashboard')
   const isLoginPage = request.nextUrl.pathname === '/login'
@@ -52,7 +47,6 @@ export async function middleware(request: NextRequest) {
 
   // 2. Si YA hay usuario y está en el login -> AL DASHBOARD
   if (user && isLoginPage) {
-    console.log("Redirecting to Login: Protected route & No user");
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
