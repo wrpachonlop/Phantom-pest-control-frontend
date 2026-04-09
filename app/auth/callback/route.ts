@@ -46,12 +46,12 @@ export async function GET(request: Request) {
       const email = data.session.user.email || "";
 
       // 3. Verificación de dominio
-      if (!email.endsWith(`@${ALLOWED_DOMAIN}`)) {
-        await supabase.auth.signOut();
-        return NextResponse.redirect(
-          `${origin}/login?error=Access+restricted+to+@${ALLOWED_DOMAIN}+accounts`
-        );
-      }
+      // if (!email.endsWith(`@${ALLOWED_DOMAIN}`)) {
+      //   await supabase.auth.signOut();
+      //   return NextResponse.redirect(
+      //     `${origin}/login?error=Access+restricted+to+@${ALLOWED_DOMAIN}+accounts`
+      //   );
+      // }
 
       // 4. Sincronización con Go
       if (process.env.NEXT_PUBLIC_API_URL) {
