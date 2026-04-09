@@ -17,9 +17,9 @@ export default function LoginPage() {
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: {
-          hd: ALLOWED_DOMAIN, // Hint: restrict to domain in Google picker
-        },
+        // queryParams: {
+        //   hd: ALLOWED_DOMAIN, // Hint: restrict to domain in Google picker
+        // },
       },
     });
 
