@@ -86,7 +86,7 @@ export default function ClientDetailPage() {
       toast.success("Client deleted successfully");
       // Al borrar el cliente, ya no tiene sentido estar en esta página,
       // así que volvemos a la lista principal.
-      router.push("/clients");
+      router.push("/dashboard/clients");
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.error || "Failed to delete client");
