@@ -30,6 +30,8 @@ export default function ClientsPage() {
     queryKey: ["clients", params],
     queryFn: () => clientsApi.list(params),
     placeholderData: (prev) => prev,
+    refetchOnMount: "always", // Obliga a pedir datos cada vez que entras a la página
+    staleTime: 0,
   });
 
   const { data: contactMethods } = useQuery<ContactMethod[]>({

@@ -83,10 +83,12 @@ export default function ClientDetailPage() {
   const deleteClientMutation = useMutation({
     mutationFn: () => clientsApi.delete(id),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["clients"] });
       toast.success("Client deleted successfully");
       // Al borrar el cliente, ya no tiene sentido estar en esta página,
       // así que volvemos a la lista principal.
       router.push("/dashboard/clients");
+      router.refresh();
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.error || "Failed to delete client");
