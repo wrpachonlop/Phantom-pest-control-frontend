@@ -80,6 +80,19 @@ export default function ClientDetailPage() {
     },
   });
 
+  const deleteClientMutation = useMutation({
+    mutationFn: () => clientsApi.delete(id),
+    onSuccess: () => {
+      toast.success("Client deleted successfully");
+      // Al borrar el cliente, ya no tiene sentido estar en esta página,
+      // así que volvemos a la lista principal.
+      router.push("/clients");
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.error || "Failed to delete client");
+    }
+  });
+
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -136,6 +149,24 @@ export default function ClientDetailPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          {isAdmin && (
+            <button
+              onClick={() => {
+                if (window.confirm("Are you sure you want to delete this client? This action cannot be undone.")) {
+                  deleteClientMutation.mutate();
+                }
+              }}
+              disabled={deleteClientMutation.isPending}
+              className="p-1.5 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+              title="Delete Client"
+            >
+              {deleteClientMutation.isPending ? (
+                <div className="h-4 w-4 animate-spin border-2 border-red-500 border-t-transparent rounded-full" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+            </button>
+          )}
           <button
             onClick={() => setShowEditModal(true)}
             className="btn-secondary py-1.5 text-xs"
