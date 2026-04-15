@@ -6,6 +6,7 @@ import { AlertTriangle, ArrowRight, X } from "lucide-react";
 import { format } from "date-fns";
 import { STATUS_LABELS, STATUS_COLORS } from "@/utils/types";
 import clsx from "clsx";
+import { formatDateOnly } from "@/src/lib/utils";
 
 interface Props {
   result: DuplicateCheckResult;
@@ -49,7 +50,7 @@ export function DuplicateAlert({ result, onDismiss }: Props) {
                     </span>
                     <span className="text-xs text-gray-500 capitalize">{client.property_type}</span>
                     <span className="text-xs text-gray-400">
-                      {format(new Date(client.client_contact_date), "MMM d, yyyy")}
+                      {formatDateOnly(client.client_contact_date)}
                     </span>
                   </div>
                 </div>

@@ -47,7 +47,13 @@ export default function NewClientPage() {
     queryKey: ["pest-issues"],
     queryFn: pestIssuesApi.list,
   });
-
+  const getLocalToday = () => {
+  const now = new Date();
+    // Ajustamos la fecha restando el offset de la zona horaria local manualmente
+    const offset = now.getTimezoneOffset() * 60000; 
+    const localISOTime = new Date(now.getTime() - offset).toISOString();
+    return localISOTime.split("T")[0]; // Devuelve "YYYY-MM-DD" en tu hora local
+  };
   const {
     register, handleSubmit, watch, control,
     formState: { errors },
@@ -60,7 +66,7 @@ export default function NewClientPage() {
       status: "blue",
       after_hours: false,
       location_type: "address",
-      client_contact_date: new Date().toISOString().split("T")[0],
+      client_contact_date: getLocalToday(),
       phones: [{ phone_number: "", label: "primary" }],
       emails: [],
       pest_issues: [],

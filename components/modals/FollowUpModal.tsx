@@ -24,6 +24,11 @@ interface Props {
 }
 
 export function FollowUpModal({ clientId, onClose, onSuccess }: Props) {
+  const getLocalToday = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    return new Date(now.getTime() - offset).toISOString().split("T")[0];
+  };
   const {
     register,
     handleSubmit,
@@ -31,7 +36,7 @@ export function FollowUpModal({ clientId, onClose, onSuccess }: Props) {
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      date: new Date().toISOString().split("T")[0],
+      date: getLocalToday(), 
       type: "inbound",
     },
   });

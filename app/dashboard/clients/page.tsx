@@ -13,10 +13,12 @@ import {
   ArrowUpDown, Clock, Building2, Home
 } from "lucide-react";
 import { format } from "date-fns";
+import { formatDateOnly } from "@/src/lib/utils";
 
 const PAGE_SIZE = 50;
 
 export default function ClientsPage() {
+
   const router = useRouter();
   const [params, setParams] = useState<ClientListParams>({
     page: 1, page_size: PAGE_SIZE,
@@ -176,7 +178,7 @@ export default function ClientsPage() {
                       {STATUS_LABELS[client.status]}
                     </span>
                   </td>
-                  <td className="text-xs">{format(new Date(client.client_contact_date), "MMM d, yyyy")}</td>
+                  <td className="text-xs">{ formatDateOnly(client.client_contact_date) }</td>
                   <td className="text-xs capitalize">{cm?.name || "—"}</td>
                   <td className="text-xs">{client.location_value || "—"}</td>
                   <td>
@@ -188,7 +190,7 @@ export default function ClientsPage() {
                   </td>
                   <td className="text-xs">
                     {client.first_contact_date
-                      ? format(new Date(client.first_contact_date), "MMM d, yyyy")
+                      ? formatDateOnly(client.first_contact_date)
                       : <span className="text-gray-300">—</span>
                     }
                   </td>

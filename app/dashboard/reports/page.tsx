@@ -10,6 +10,7 @@ import clsx from "clsx";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { formatDateOnly } from "@/src/lib/utils";
 
 type Period = "daily" | "weekly" | "monthly" | "custom";
 
@@ -72,8 +73,13 @@ function BreakdownTable({ rows }: { rows: ContactMethodBreakdown[] }) {
 }
 
 export default function ReportsPage() {
+  const getLocalToday = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    return new Date(now.getTime() - offset).toISOString().split("T")[0];
+  };
   const [period, setPeriod] = useState<Period>("weekly");
-  const [anchorDate, setAnchorDate] = useState(new Date().toISOString().split("T")[0]);
+  const [anchorDate, setAnchorDate] = useState(getLocalToday());
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
   const printRef = useRef<HTMLDivElement>(null);
@@ -91,11 +97,16 @@ export default function ReportsPage() {
 
   // Navigate periods
   const navigatePeriod = (dir: -1 | 1) => {
-    const d = new Date(anchorDate);
+    // 1. Parsear la fecha actual del estado de forma local (evita UTC)
+    const [year, month, day] = anchorDate.split("-").map(Number);
+    const d = new Date(year, month - 1, day);
     if (period === "daily") d.setDate(d.getDate() + dir);
     if (period === "weekly") d.setDate(d.getDate() + 7 * dir);
     if (period === "monthly") d.setMonth(d.getMonth() + dir);
-    setAnchorDate(d.toISOString().split("T")[0]);
+    const newYear = d.getFullYear();
+    const newMonth = String(d.getMonth() + 1).padStart(2, "0");
+    const newDay = String(d.getDate()).padStart(2, "0");
+    setAnchorDate(`${newYear}-${newMonth}-${newDay}`);
   };
 
   // Export to Excel
@@ -128,6 +139,14 @@ export default function ReportsPage() {
 
   // Export to PDF
   const exportPDF = () => {
+    const now = new Date();
+
+    // Opción A: Usar Intl (Nativo de JS, muy limpio para reportes)
+    const formattedDate = new Intl.DateTimeFormat('en-US', {
+      dateStyle: 'full',
+      timeStyle: 'short',
+      timeZone: 'America/Vancouver'
+    }).format(now);
     if (!data) return;
     const doc = new jsPDF();
 
@@ -137,7 +156,7 @@ export default function ReportsPage() {
     doc.text(data.period_label, 14, 23);
     doc.setFontSize(9);
     doc.setTextColor(120);
-    doc.text(`Generated: ${format(new Date(), "PPP")}`, 14, 29);
+    doc.text(`Generated: ${formattedDate}`, 14, 29);
     doc.setTextColor(0);
 
     // Totals
@@ -253,7 +272,7 @@ export default function ReportsPage() {
               </div>
               <button onClick={() => navigatePeriod(1)} className="btn-secondary py-1 px-2 text-xs">→</button>
               <button
-                onClick={() => setAnchorDate(new Date().toISOString().split("T")[0])}
+                onClick={() => setAnchorDate(getLocalToday())}
                 className="text-xs text-phantom-600 hover:text-phantom-700"
               >
                 Today
@@ -292,7 +311,7 @@ export default function ReportsPage() {
           <div className="text-center">
             <h2 className="text-lg font-bold text-gray-900">{data.period_label}</h2>
             <p className="text-xs text-gray-400 mt-0.5">
-              {format(new Date(data.date_from), "MMM d, yyyy")} — {format(new Date(data.date_to), "MMM d, yyyy")}
+              {formatDateOnly(data.date_from)} — {formatDateOnly(data.date_to)}
             </p>
           </div>
 

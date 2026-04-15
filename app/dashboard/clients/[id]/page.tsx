@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { FollowUpModal } from "@/components/modals/FollowUpModal";
 import { EditClientModal } from "@/components/modals/EditClientModal";
+import { formatDateOnly } from "@/src/lib/utils";
 
 type Tab = "follow-ups" | "notes" | "audit";
 
@@ -186,16 +187,16 @@ export default function ClientDetailPage() {
 
           {/* Key dates */}
           <Section title="Dates">
-            <InfoRow label="Contact Date" value={format(new Date(client.client_contact_date), "MMM d, yyyy")} />
+            <InfoRow label="Contact Date" value={ formatDateOnly(client.client_contact_date) } />
             <InfoRow
               label="First Follow-up"
               value={client.first_contact_date
-                ? format(new Date(client.first_contact_date), "MMM d, yyyy")
+                ? formatDateOnly(client.first_contact_date)
                 : "—"
               }
             />
             {client.sold_date && (
-              <InfoRow label="Sold Date" value={format(new Date(client.sold_date), "MMM d, yyyy")} />
+              <InfoRow label="Sold Date" value={formatDateOnly(client.sold_date)} />
             )}
           </Section>
 
@@ -290,7 +291,7 @@ export default function ClientDetailPage() {
                             {fu.type}
                           </span>
                           <span className="text-xs text-gray-500">
-                            {format(new Date(fu.date), "MMM d, yyyy")}
+                            {formatDateOnly(fu.date)}
                           </span>
                           {fu.created_by_user && (
                             <span className="text-xs text-gray-400">
@@ -348,7 +349,7 @@ export default function ClientDetailPage() {
                             {note.user_full_name || note.user_email || "Unknown"}
                           </span>
                           <span className="text-xs text-gray-400">
-                            {format(new Date(note.created_at), "MMM d, yyyy HH:mm")}
+                            {formatDateOnly(note.created_at, "MMM d, yyyy HH:mm")}
                           </span>
                         </div>
                         <p className="text-sm text-gray-700 whitespace-pre-wrap">{note.note}</p>
@@ -398,7 +399,7 @@ export default function ClientDetailPage() {
                           : ""}
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        {format(new Date(log.created_at), "MMM d, yyyy HH:mm:ss")}
+                        {formatDateOnly(log.created_at, "MMM d, yyyy HH:mm:ss")}
                       </p>
                     </div>
                   </div>
