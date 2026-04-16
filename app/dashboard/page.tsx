@@ -49,11 +49,13 @@ const STATUS_CHART_COLORS: Record<string, string> = {
   blue: "#3b82f6", white: "#94a3b8", yellow: "#eab308",
   purple: "#a855f7", green: "#22c55e", red: "#ef4444",
 };
+// Función rápida para obtener YYYY-MM-DD en la zona horaria local
+const getTodayString = () => new Date().toISOString().split('T')[0];
 
 export default function DashboardPage() {
   const { data, isLoading, error } = useQuery<DashboardResponse>({
-    queryKey: ["dashboard"],
-    queryFn: reportsApi.getDashboard,
+    queryKey: ["dashboard",getTodayString()], // include date in key to ensure fresh data each day
+    queryFn:() => reportsApi.getDashboard(getTodayString()),
     refetchInterval: 60_000, // auto-refresh every 60s
   });
 

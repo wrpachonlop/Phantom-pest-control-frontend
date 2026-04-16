@@ -144,8 +144,8 @@ export const reportsApi = {
   get: (params: ReportParams) =>
     http.get<ReportPeriodResult>("/reports", { params }).then((r) => r.data),
 
-  getDashboard: () =>
-    http.get<DashboardResponse>("/reports/dashboard").then((r) => r.data),
+  getDashboard: (anchorDate?: string) =>
+    http.get<DashboardResponse>("/reports/dashboard", { params: { anchor_date: anchorDate } }).then((r) => r.data),
 };
 
 // ── Users API ─────────────────────────────────────────────
