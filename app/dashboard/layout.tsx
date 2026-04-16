@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image"; 
 import { createBrowserClient } from "@/services/supabaseClient";
 import { usersApi } from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
@@ -68,7 +69,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Brand */}
         <div className="flex h-16 items-center gap-3 border-b border-phantom-800 px-5">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-phantom-600">
-            <Bug className="h-4 w-4 text-white" />
+            {/* <Bug className="h-4 w-4 text-white" /> */}
+             <Image 
+              src="/phantom-logo.png" // <-- Cambia esto por el nombre exacto de tu archivo en /public
+              alt="Phantom Pest Control Logo"
+              width={240}  // Equivalente a w-14 de Tailwind
+              height={240} // Equivalente a h-14 de Tailwind
+              priority    // Carga esta imagen primero (esencial para el LCP)
+              className="object-contain p-1" // Asegura que no se deforme y tenga aire
+            />
           </div>
           <div>
             <p className="text-sm font-bold text-white leading-tight">Phantom</p>
