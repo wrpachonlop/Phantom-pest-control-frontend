@@ -68,7 +68,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         {/* Brand */}
         <div className="flex h-16 items-center gap-3 border-b border-phantom-800 px-5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-phantom-600">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
             {/* <Bug className="h-4 w-4 text-white" /> */}
              <Image 
               src="/phantom-logo.png" // <-- Cambia esto por el nombre exacto de tu archivo en /public
