@@ -14,6 +14,7 @@ interface Props {
 }
 
 export function EditClientModal({ client, onClose, onSuccess }: Props) {
+  const today = new Date().toLocaleDateString("sv-SE");
   const { data: contactMethods = [] } = useQuery<ContactMethod[]>({
     queryKey: ["contact-methods"],
     queryFn: contactMethodsApi.list,
@@ -37,7 +38,13 @@ export function EditClientModal({ client, onClose, onSuccess }: Props) {
   });
 
   const watchStatus = watch("status");
-
+  const getLocalToday = () => {
+  const now = new Date();
+    // Ajustamos la fecha restando el offset de la zona horaria local manualmente
+    const offset = now.getTimezoneOffset() * 60000; 
+    const localISOTime = new Date(now.getTime() - offset).toISOString();
+    return localISOTime.split("T")[0]; // Devuelve "YYYY-MM-DD" en tu hora local
+  };
   const mutation = useMutation({
     mutationFn: (data: any) => clientsApi.update(client.id, data),
     onSuccess: () => {
@@ -131,7 +138,7 @@ export function EditClientModal({ client, onClose, onSuccess }: Props) {
               <>
                 <div>
                   <label className="field-label">Sold Date *</label>
-                  <input type="date" className="input-base" {...register("sold_date")} />
+                  <input type="date" className="input-base" max={getLocalToday()} {...register("sold_date")} />
                 </div>
                 <div>
                   <label className="field-label">Sale Range</label>

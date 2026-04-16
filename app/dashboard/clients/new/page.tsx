@@ -353,7 +353,7 @@ export default function NewClientPage() {
               <>
                 <div>
                   <label className="field-label">Sold Date *</label>
-                  <input type="date" className="input-base" {...register("sold_date")} />
+                  <input type="date" className="input-base" max={getLocalToday()} {...register("sold_date")} />
                 </div>
                 <div>
                   <label className="field-label">Sale Range</label>

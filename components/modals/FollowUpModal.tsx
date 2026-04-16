@@ -82,7 +82,6 @@ export function FollowUpModal({ clientId, onClose, onSuccess }: Props) {
               <select className="input-base" {...register("type")}>
                 <option value="inbound">Inbound</option>
                 <option value="outbound">Outbound</option>
-                <option value="sold">Sold</option>
               </select>
             </div>
           </div>
