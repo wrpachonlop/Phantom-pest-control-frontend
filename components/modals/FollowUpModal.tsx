@@ -1,29 +1,32 @@
 "use client";
 
+import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { followUpsApi } from "@/services/api";
-import type { CreateFollowUpForm } from "@/utils/types";
+import type { CreateFollowUpForm, FollowUp } from "@/utils/types";
 import toast from "react-hot-toast";
 import { X } from "lucide-react";
 
 const schema = z.object({
   date: z.string().min(1, "Date is required"),
   type: z.enum(["inbound", "outbound", "sold"]),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
 });
 
 type FormValues = z.infer<typeof schema>;
 
 interface Props {
   clientId: string;
+  followUp?: FollowUp | null;// Nueva prop para editar
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export function FollowUpModal({ clientId, onClose, onSuccess }: Props) {
+export function FollowUpModal({ clientId, followUp , onClose, onSuccess }: Props) {
+  const isEditing = !!followUp;
   const getLocalToday = () => {
     const now = new Date();
     const offset = now.getTimezoneOffset() * 60000;
@@ -32,24 +35,57 @@ export function FollowUpModal({ clientId, onClose, onSuccess }: Props) {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       date: getLocalToday(), 
       type: "inbound",
+      description: "",
     },
   });
 
+  useEffect(() => {
+    if (followUp) {
+      reset({
+        date: followUp.date.split("T")[0], // Aseguramos formato YYYY-MM-DD
+        type: followUp.type,
+        description: followUp.description || "",
+      });
+    } else {
+      reset({
+        date: getLocalToday(),
+        type: "inbound",
+        description: "",
+      });
+    }
+  }, [followUp, reset]);
+
+  // const mutation = useMutation({
+  //   mutationFn: (data: FormValues) =>
+  //     followUpsApi.create({ ...data, client_id: clientId } as CreateFollowUpForm),
+  //   onSuccess: () => {
+  //     toast.success("Follow-up added");
+  //     onSuccess();
+  //   },
+  //   onError: (err: any) => {
+  //     toast.error(err?.response?.data?.error || "Failed to add follow-up");
+  //   },
+  // });
   const mutation = useMutation({
-    mutationFn: (data: FormValues) =>
-      followUpsApi.create({ ...data, client_id: clientId } as CreateFollowUpForm),
+    mutationFn: (data: FormValues) => {
+      if (isEditing && followUp) {
+        return followUpsApi.update(followUp.id, data);
+      }
+      return followUpsApi.create({ ...data, client_id: clientId } as CreateFollowUpForm);
+    },
     onSuccess: () => {
-      toast.success("Follow-up added");
+      toast.success(isEditing ? "Follow-up updated" : "Follow-up added");
       onSuccess();
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.error || "Failed to add follow-up");
+      toast.error(err?.response?.data?.error || "An error occurred");
     },
   });
 
@@ -105,7 +141,7 @@ export function FollowUpModal({ clientId, onClose, onSuccess }: Props) {
               disabled={mutation.isPending}
               className="btn-primary"
             >
-              {mutation.isPending ? "Saving…" : "Save Follow-up"}
+              {mutation.isPending ? "Saving…" : isEditing ? "Update Changes" : "Save Follow-up"}
             </button>
           </div>
         </form>

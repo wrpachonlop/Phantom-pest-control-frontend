@@ -28,6 +28,7 @@ export default function ClientDetailPage() {
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [newNote, setNewNote] = useState("");
+  const [selectedFollowUp, setSelectedFollowUp] = useState<FollowUp | null>(null); // Para editar follow-ups
 
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: usersApi.me });
   const isAdmin = me?.role === "admin" as UserRole;
@@ -70,6 +71,20 @@ export default function ClientDetailPage() {
       qc.invalidateQueries({ queryKey: ["follow-ups", id] });
       toast.success("Follow-up deleted");
     },
+  });
+  const updateFollowUpMutation = useMutation({
+  // fuid es el ID del follow-up, y data es el DTO que armamos en Go
+    mutationFn: ({ fuId, data }: { fuId: string; data: any }) => 
+      followUpsApi.update(fuId, data), 
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["follow-ups", id] });
+      toast.success("Follow-up updated successfully");
+      setShowFollowUpModal(false); // Cerramos el modal tras éxito
+      setSelectedFollowUp(null);   // Limpiamos el estado
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.error || "Failed to update follow-up");
+    }
   });
 
   const deleteNoteMutation = useMutation({
@@ -336,14 +351,27 @@ export default function ClientDetailPage() {
                           <p className="text-sm text-gray-700 whitespace-pre-wrap">{fu.description}</p>
                         )}
                       </div>
-                      {isAdmin && (
+                      
+                      <div className="flex gap-2">
                         <button
-                          onClick={() => deleteFollowUpMutation.mutate(fu.id)}
-                          className="text-gray-300 hover:text-red-500 transition-colors"
+                          onClick={() => {
+                            setSelectedFollowUp(fu); // Necesitas un estado para guardar el FU a editar
+                            setShowFollowUpModal(true);
+                          }}
+                          className="text-gray-300 hover:text-blue-500 transition-colors"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Edit2 className="h-3.5 w-3.5" /> {/* Usa el icono de Edit de Lucide */}
                         </button>
-                      )}
+
+                        {isAdmin && (
+                          <button
+                            onClick={() => deleteFollowUpMutation.mutate(fu.id)}
+                            className="text-gray-300 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -447,9 +475,14 @@ export default function ClientDetailPage() {
       {showFollowUpModal && (
         <FollowUpModal
           clientId={id}
-          onClose={() => setShowFollowUpModal(false)}
+          followUp={selectedFollowUp}
+          onClose={() => {
+            setShowFollowUpModal(false);
+            setSelectedFollowUp(null); // <--- Limpiamos al cerrar
+          }}
           onSuccess={() => {
             setShowFollowUpModal(false);
+            setSelectedFollowUp(null);
             qc.invalidateQueries({ queryKey: ["follow-ups", id] });
             qc.invalidateQueries({ queryKey: ["client", id] });
           }}

@@ -92,6 +92,9 @@ export const followUpsApi = {
 
   delete: (id: string) =>
     http.delete(`/follow-ups/${id}`).then((r) => r.data),
+
+  update: (id: string, data: any) => 
+    http.put<FollowUp>(`/follow-ups/${id}`, data).then((r) => r.data),
 };
 
 // ── Notes API ─────────────────────────────────────────────
