@@ -1,11 +1,11 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { clientsApi, contactMethodsApi } from "@/services/api";
-import type { ClientFull, ContactMethod } from "@/utils/types";
+import { useForm,useFieldArray } from "react-hook-form";
+import { clientsApi, contactMethodsApi, pestIssuesApi } from "@/services/api";
+import type { ClientFull, ContactMethod, PestIssue } from "@/utils/types";
 import toast from "react-hot-toast";
-import { X } from "lucide-react";
+import { X, Plus, Trash2 } from "lucide-react";
 
 interface Props {
   client: ClientFull;
@@ -20,7 +20,7 @@ export function EditClientModal({ client, onClose, onSuccess }: Props) {
     queryFn: contactMethodsApi.list,
   });
 
-  const { register, handleSubmit, watch } = useForm({
+const { register, handleSubmit, watch, control, formState: { errors } } = useForm({
     defaultValues: {
       client_name: client.client_name || "",
       client_type: client.client_type,
@@ -34,7 +34,27 @@ export function EditClientModal({ client, onClose, onSuccess }: Props) {
       location_value: client.location_value || "",
       sale_range: client.sale_range || "",
       sold_date: client.sold_date?.split("T")[0] || "",
+      // Inicializamos los arrays con los datos actuales del cliente
+      phones: client.phones.map(p => ({ phone_number: p.phone_number, label: p.label })),
+      emails: client.emails.map(e => ({ email: e.email, label: e.label })),
+      pest_issues: client.pest_issues.map(p => p.id),
     },
+  });
+
+  const { data: allPests = [] } = useQuery<PestIssue[]>({
+    queryKey: ["pest-issues"],
+    queryFn: pestIssuesApi.list, // Asegúrate de que esta función exista en tu services/api
+  });
+
+  // Controladores para arrays dinámicos
+  const { fields: phoneFields, append: appendPhone, remove: removePhone } = useFieldArray({
+    control,
+    name: "phones"
+  });
+
+  const { fields: emailFields, append: appendEmail, remove: removeEmail } = useFieldArray({
+    control,
+    name: "emails"
   });
 
   const watchStatus = watch("status");
@@ -74,6 +94,79 @@ export function EditClientModal({ client, onClose, onSuccess }: Props) {
               <label className="field-label">Client Name</label>
               <input className="input-base" {...register("client_name")} />
             </div>
+
+            <div className="col-span-2 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="field-label">Phones</label>
+                <button 
+                  type="button" 
+                  onClick={() => appendPhone({ phone_number: "", label: "mobile" })}
+                  className="text-xs flex items-center gap-1 text-phantom-600 hover:underline"
+                >
+                  <Plus className="h-3 w-3" /> Add Phone
+                </button>
+              </div>
+              {phoneFields.map((field, index) => (
+                <div key={field.id} className="flex gap-2">
+                  <input 
+                    placeholder="Number" 
+                    className="input-base flex-1" 
+                    {...register(`phones.${index}.phone_number` as const)} 
+                  />
+                  <select className="input-base w-32" {...register(`phones.${index}.label` as const)}>
+                    <option value="mobile">Mobile</option>
+                    <option value="home">Home</option>
+                    <option value="work">Work</option>
+                  </select>
+                  <button type="button" onClick={() => removePhone(index)} className="p-2 text-red-500">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="col-span-2 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="field-label">Emails</label>
+                <button 
+                  type="button" 
+                  onClick={() => appendEmail({ email: "", label: "personal" })}
+                  className="text-xs flex items-center gap-1 text-phantom-600 hover:underline"
+                >
+                  <Plus className="h-3 w-3" /> Add Email
+                </button>
+              </div>
+              {emailFields.map((field, index) => (
+                <div key={field.id} className="flex gap-2">
+                  <input 
+                    placeholder="Email" 
+                    className="input-base flex-1" 
+                    {...register(`emails.${index}.email` as const)} 
+                  />
+                  <button type="button" onClick={() => removeEmail(index)} className="p-2 text-red-500">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="col-span-2">
+              <label className="field-label">Pest Issues</label>
+              <div className="grid grid-cols-3 gap-2 mt-1">
+                {allPests.map((pest) => (
+                  <label key={pest.id} className="flex items-center gap-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      value={pest.id}
+                      className="rounded border-gray-300 text-phantom-600"
+                      {...register("pest_issues")}
+                    />
+                    <span className="text-xs text-gray-700">{pest.name}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+
             <div>
               <label className="field-label">Client Type</label>
               <select className="input-base" {...register("client_type")}>
