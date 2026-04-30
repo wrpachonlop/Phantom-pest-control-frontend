@@ -12,6 +12,7 @@ import toast from "react-hot-toast";
 import { Plus, Trash2, AlertTriangle, ArrowRight } from "lucide-react";
 import clsx from "clsx";
 import { DuplicateAlert } from "@/components/modals/DuplicateAlert";
+import { PhotonAddressInput } from "@/components/PhotonAddressInput";
 
 const schema = z.object({
   client_name: z.string().optional(),
@@ -278,10 +279,11 @@ export default function NewClientPage() {
             </div>
             <div>
               <label className="field-label">Location Value</label>
-              <input
-                className="input-base"
-                placeholder="Enter address or city"
-                {...register("location_value")}
+              <PhotonAddressInput
+                  onChange={(val) => setValue("location_value", val)}
+                  placeholder="Ex: 1234 Main St, Vancouver"
+                />
+                <input type="hidden" {...register("location_value", { required: true })}
               />
             </div>
             <div className="col-span-2">
