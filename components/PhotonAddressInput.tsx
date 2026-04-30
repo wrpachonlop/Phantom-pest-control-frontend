@@ -51,12 +51,25 @@ export function PhotonAddressInput({ defaultValue = "", onChange, placeholder }:
 
   const handleSelect = (feature: any) => {
     const p = feature.properties;
-    // Formato: "Número Calle, Ciudad, Código Postal"
+
+    // 1. Intentamos obtener el nombre de la calle (name o street)
+    // Photon a veces pone el nombre de la calle en 'name' si es un resultado directo
+    // o en 'street' si el resultado es un punto de interés.
+    const streetName = p.street || p.name || "";
+    const houseNumber = p.housenumber || "";
+
+    // 2. Construimos la primera parte (Número + Calle)
+    // Si hay número de casa, lo ponemos antes del nombre de la calle
+    const streetAddress = houseNumber ? `${houseNumber} ${streetName}` : streetName;
+
+    // 3. Unimos todo con comas, filtrando valores que no existan
     const display = [
-      p.housenumber ? `${p.housenumber} ${p.name}` : p.name,
+      streetAddress,
       p.city,
       p.postcode
-    ].filter(Boolean).join(", ");
+    ]
+      .filter((val) => val && val !== "undefined") // Filtro extra de seguridad
+      .join(", ");
 
     setQuery(display);
     onChange(display);
