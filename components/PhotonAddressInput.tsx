@@ -91,20 +91,30 @@ export function PhotonAddressInput({ defaultValue = "", onChange, placeholder }:
 
       {isOpen && suggestions.length > 0 && (
         <ul className="absolute z-[100] w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-64 overflow-y-auto overflow-x-hidden">
-          {suggestions.map((s, i) => (
-            <li
-              key={i}
-              className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 transition-colors"
-              onClick={() => handleSelect(s)}
-            >
-              <div className="text-sm font-semibold text-gray-900">
-                {s.properties.housenumber} {s.properties.name}
-              </div>
-              <div className="text-xs text-gray-500">
-                {s.properties.city}, {s.properties.state} {s.properties.postcode || ""}
-              </div>
-            </li>
-          ))}
+          {suggestions.map((s, i) => {
+            const p = s.properties;
+            
+            // 1. Lógica de respaldo para el nombre de la calle
+            const streetName = p.street || p.name || "";
+            const houseNumber = p.housenumber || "";
+
+            return (
+              <li
+                key={i}
+                className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0"
+                onClick={() => handleSelect(s)}
+              >
+                {/* 2. Mostramos el número y la calle correctamente */}
+                <div className="text-sm font-semibold text-gray-900">
+                  {houseNumber} {streetName}
+                </div>
+                
+                <div className="text-xs text-gray-500">
+                  {p.city}, {p.state} {p.postcode || ""}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
