@@ -16,6 +16,14 @@ import type { User } from "@/utils/types";
 
 const NAV_ITEMS = [
   { href: "/dashboard",         label: "Dashboard",  icon: LayoutDashboard },
+  { 
+    label: "Clients", 
+    icon: Users,
+    children: [
+      { href: "/dashboard/clients", label: "Residential" },
+      { href: "/dashboard/clients/commercial",  label: "Commercial" },
+    ]
+  },
   { href: "/dashboard/clients", label: "Clients",    icon: Users },
   { href: "/dashboard/reports", label: "Reports",    icon: BarChart2 },
   { href: "/dashboard/admin",   label: "Admin",      icon: Settings, adminOnly: true },
@@ -44,10 +52,75 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     await supabase.auth.signOut();
     router.replace("/login");
   };
-
+  
+  
   const navItems = NAV_ITEMS.filter((item) =>
     !item.adminOnly || me?.role === "admin"
   );
+
+  function NavItem({ item, pathname, onNavClick }: { item: any, pathname: string, onNavClick: () => void }) {
+    const [isOpen, setIsOpen] = useState(pathname.startsWith("/dashboard/clients"));
+    const Icon = item.icon;
+    const hasChildren = !!item.children;
+    
+    // Si no tiene hijos, es un Link normal
+    if (!hasChildren) {
+      const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+      return (
+        <li>
+          <Link
+            href={item.href}
+            onClick={onNavClick}
+            className={clsx(
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+              active ? "bg-phantom-700 text-white" : "text-phantom-300 hover:bg-phantom-800 hover:text-white"
+            )}
+          >
+            <Icon className="h-4 w-4 flex-shrink-0" />
+            <span className="flex-1">{item.label}</span>
+          </Link>
+        </li>
+      );
+    }
+
+    // Si tiene hijos, renderizamos el desplegable
+    return (
+      <li className="space-y-1">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-phantom-300 transition-colors hover:bg-phantom-800 hover:text-white"
+        >
+          <Icon className="h-4 w-4 flex-shrink-0" />
+          <span className="flex-1 text-left">{item.label}</span>
+          <ChevronRight className={clsx("h-3.5 w-3.5 transition-transform", isOpen && "rotate-90")} />
+        </button>
+        
+        {isOpen && (
+          <ul className="ml-7 space-y-1 border-l border-phantom-800 pl-2">
+            {item.children.map((child: any) => {
+              const active = pathname === child.href;
+              return (
+                <li key={child.href}>
+                  <Link
+                    href={child.href}
+                    onClick={onNavClick}
+                    className={clsx(
+                      "block rounded-md px-3 py-2 text-xs font-medium transition-colors",
+                      active ? "text-white bg-phantom-800" : "text-phantom-400 hover:text-white hover:bg-phantom-800"
+                    )}
+                  >
+                    {child.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </li>
+    );
+  }
+
+  
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
@@ -92,7 +165,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3">
+      <nav className="flex-1 overflow-y-auto py-4 px-3">
+        <ul className="space-y-1">
+          {navItems.map((item) => (
+            <NavItem 
+              key={item.label} 
+              item={item} 
+              pathname={pathname} 
+              onNavClick={() => setSidebarOpen(false)} 
+            />
+          ))}
+        </ul>
+      </nav>
+        {/* <nav className="flex-1 overflow-y-auto py-4 px-3">
           <ul className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -117,7 +202,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               );
             })}
           </ul>
-        </nav>
+        </nav> */}
 
         {/* User section */}
         <div className="border-t border-phantom-800 p-3">
