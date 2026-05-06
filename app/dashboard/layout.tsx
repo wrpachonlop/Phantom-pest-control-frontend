@@ -20,11 +20,10 @@ const NAV_ITEMS = [
     label: "Clients", 
     icon: Users,
     children: [
-      { href: "/dashboard/clients", label: "Residential" },
+      { href: "/dashboard/clients/residential", label: "Residential" },
       { href: "/dashboard/clients/commercial",  label: "Commercial" },
     ]
   },
-  { href: "/dashboard/clients", label: "Clients",    icon: Users },
   { href: "/dashboard/reports", label: "Reports",    icon: BarChart2 },
   { href: "/dashboard/admin",   label: "Admin",      icon: Settings, adminOnly: true },
 ];
