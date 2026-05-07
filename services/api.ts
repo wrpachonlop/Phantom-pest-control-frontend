@@ -173,3 +173,65 @@ export const auditLogsApi = {
   list: (params?: { entity_type?: string; entity_id?: string }) =>
     http.get<{ data: AuditLog[] }>("/audit-logs", { params }).then((r) => r.data.data),
 };
+
+// ── Crew Members API ──────────────────────────────────────
+
+export interface CrewMember {
+  id: string;
+  full_name: string;
+  employee_id?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export const crewMembersApi = {
+  list: () =>
+    http.get<{ data: CrewMember[] }>("/crew-members").then((r) => r.data.data),
+
+  create: (data: { full_name: string; employee_id?: string }) =>
+    http.post<CrewMember>("/crew-members", data).then((r) => r.data),
+
+  update: (id: string, data: { full_name?: string; is_active?: boolean }) =>
+    http.put<CrewMember>(`/crew-members/${id}`, data).then((r) => r.data),
+};
+
+// ── Commercial & Inspectors API ───────────────────────────
+
+export const commercialApi = {
+  // Lista usuarios con flag is_inspector = true
+  listInspectors: () =>
+    http.get<{ data: User[] }>("/inspectors").then((r) => r.data.data),
+
+  // Activa/Desactiva el flag de inspector en un usuario (Admin only)
+  setInspectorFlag: (userId: string, isInspector: boolean) =>
+    http.put(`/admin/users/${userId}/inspector`, { is_inspector: isInspector }).then((r) => r.data),
+    
+  // Endpoint para crear inspector externo (el que no tiene login)
+  createExternalInspector: (data: { full_name: string; email: string }) =>
+    http.post("/admin/inspectors", data).then((r) => r.data),
+};
+
+// ── Locations API ─────────────────────────────────────────
+
+export interface ClientLocation {
+  id: string;
+  client_id: string;
+  label: string;
+  location_type: 'address' | 'coordinates';
+  location_value: string;
+  is_primary: boolean;
+}
+
+export const locationsApi = {
+  listByClient: (clientId: string) =>
+    http.get<ClientLocation[]>(`/clients/${clientId}/locations`).then((r) => r.data),
+
+  create: (clientId: string, data: Omit<ClientLocation, "id" | "client_id">) =>
+    http.post(`/clients/${clientId}/locations`, data).then((r) => r.data),
+
+  update: (id: string, data: Partial<ClientLocation>) =>
+    http.put(`/locations/${id}`, data).then((r) => r.data),
+
+  delete: (id: string) =>
+    http.delete(`/locations/${id}`).then((r) => r.data),
+};

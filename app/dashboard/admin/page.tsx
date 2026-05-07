@@ -2,19 +2,21 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { contactMethodsApi, pestIssuesApi, usersApi } from "@/services/api";
+import { contactMethodsApi, pestIssuesApi, usersApi, crewMembersApi, CrewMember } from "@/services/api";
 import type { ContactMethod, PestIssue, User } from "@/utils/types";
 import toast from "react-hot-toast";
 import { Plus, Edit2, ToggleLeft, ToggleRight, Shield, ShieldOff } from "lucide-react";
 import clsx from "clsx";
 
-type AdminTab = "contact-methods" | "pest-issues" | "users";
+type AdminTab = "contact-methods" | "pest-issues" | "users" | "crew";
 
 export default function AdminPage() {
   const [tab, setTab] = useState<AdminTab>("contact-methods");
   const [newCM, setNewCM] = useState("");
+  const [newCrewName, setNewCrewName] = useState("");
   const [newPI, setNewPI] = useState("");
   const qc = useQueryClient();
+  const [newCrewID, setNewCrewID] = useState("");
 
   // ── Contact Methods ───────────────────────────────────────
   const { data: contactMethods = [] } = useQuery<ContactMethod[]>({
@@ -22,6 +24,26 @@ export default function AdminPage() {
     queryFn: contactMethodsApi.list,
   });
 
+
+  const { data: crewMembers = [] } = useQuery<CrewMember[]>({
+    queryKey: ["crew-members"],
+    queryFn: crewMembersApi.list,
+    enabled: tab === "crew",
+  });
+
+  const createCrew = useMutation({
+    mutationFn: () => crewMembersApi.create({ 
+      full_name: newCrewName, 
+      employee_id: newCrewID 
+    }),
+    onSuccess: () => {
+      setNewCrewName("");
+      setNewCrewID("");
+      qc.invalidateQueries({ queryKey: ["crew-members"] });
+      toast.success("Crew member added");
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error || "Failed to add crew member"),
+  });
   const createCM = useMutation({
     mutationFn: () => contactMethodsApi.create(newCM),
     onSuccess: () => {
@@ -78,6 +100,7 @@ export default function AdminPage() {
     { id: "contact-methods", label: "Contact Methods" },
     { id: "pest-issues",     label: "Pest Issues" },
     { id: "users",           label: "Users" },
+    { id: "crew",            label: "Crew Members" },
   ];
 
   return (
@@ -272,6 +295,72 @@ export default function AdminPage() {
           ))}
         </div>
       )}
+      {/* ── Crew Members ────────────────────────────────────────── */}
+      {tab === "crew" && (
+        <div className="space-y-3">
+          <div className="card p-4">
+            <h2 className="text-sm font-semibold text-gray-700 mb-3">Add Crew Member</h2>
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <input
+                  className="input-base flex-1"
+                  placeholder="Full Name"
+                  value={newCrewName}
+                  onChange={(e) => setNewCrewName(e.target.value)}
+                />
+                <input
+                  className="input-base w-32"
+                  placeholder="ID (Optional)"
+                  value={newCrewID}
+                  onChange={(e) => setNewCrewID(e.target.value)}
+                />
+              </div>
+              <button
+                onClick={() => newCrewName.trim() && createCrew.mutate()}
+                disabled={!newCrewName.trim() || createCrew.isPending}
+                className="btn-primary w-full flex justify-center py-2"
+              >
+                <Plus className="h-4 w-4 mr-1" /> Add Member
+              </button>
+            </div>
+          </div>
+
+          <div className="card divide-y divide-gray-100">
+            {crewMembers.length === 0 && (
+              <p className="p-4 text-sm text-gray-400 text-center">No crew members yet.</p>
+            )}
+            {crewMembers.map((member) => (
+              <div key={member.id} className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                    <span className="text-xs font-bold text-gray-600">
+                      {member.full_name[0].toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      {member.full_name}
+                    </p>
+                    {member.employee_id && (
+                      <p className="text-[10px] text-gray-400 font-mono">ID: {member.employee_id}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={clsx(
+                      "h-2 w-2 rounded-full",
+                      member.is_active ? "bg-green-500" : "bg-gray-300"
+                    )} />
+                    <span className="text-xs text-gray-500">
+                      {member.is_active ? "Active" : "Inactive"}
+                    </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
