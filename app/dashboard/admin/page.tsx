@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { contactMethodsApi, pestIssuesApi, usersApi, crewMembersApi, CrewMember } from "@/services/api";
+import { contactMethodsApi, pestIssuesApi, usersApi, crewMembersApi, CrewMember, commercialApi } from "@/services/api";
 import type { ContactMethod, PestIssue, User } from "@/utils/types";
 import toast from "react-hot-toast";
 import { Plus, Edit2, ToggleLeft, ToggleRight, Shield, ShieldOff, UserPlus, ClipboardCheck } from "lucide-react";
@@ -36,20 +36,16 @@ export default function AdminPage() {
   });
 
   const toggleInspector = useMutation({
-    mutationFn: async ({ id, is_inspector }: { id: string; is_inspector: boolean }) => {
-      const res = await fetch(`/api/v1/admin/users/${id}/inspector`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_inspector }),
-      });
-      if (!res.ok) throw new Error('Failed to update inspector status');
-      return res.json();
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['users'] });
-      toast.success('Inspector status updated');
-    },
-  });
+  mutationFn: ({ id, is_inspector }: { id: string; is_inspector: boolean }) =>
+    commercialApi.setInspectorFlag(id, is_inspector),
+  onSuccess: () => {
+    qc.invalidateQueries({ queryKey: ["users"] });
+    toast.success("Inspector role updated");
+  },
+  onError: (err: any) => {
+    toast.error(err?.response?.data?.error || "Failed to update role");
+  },
+});
 
   // Mutación para crear el inspector externo
   const createExternalInspector = useMutation({
