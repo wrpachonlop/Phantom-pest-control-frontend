@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
 import { X } from "lucide-react";
+import { commercialApi } from "@/services/api";
 
 // Esquema de validación para el inspector
 const schema = z.object({
@@ -34,26 +35,17 @@ export function CreateInspectorModal({ onClose, onSuccess }: Props) {
   });
 
   const mutation = useMutation({
-    mutationFn: async (data: FormValues) => {
-      const res = await fetch("/api/v1/admin/inspectors", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to create inspector");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      toast.success("External inspector created");
-      onSuccess();
-    },
-    onError: (err: any) => {
-      toast.error(err.message || "An error occurred");
-    },
-  });
+  mutationFn: (data: FormValues) => 
+    commercialApi.createExternalInspector(data), // Usando tu service
+  onSuccess: () => {
+    toast.success("External inspector created");
+    onSuccess();
+  },
+  onError: (err: any) => {
+    // Manejo de errores consistente con tu sistema
+    toast.error(err?.response?.data?.error || "Failed to create inspector");
+  },
+});
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
