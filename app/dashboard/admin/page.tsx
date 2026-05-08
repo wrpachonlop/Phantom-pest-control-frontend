@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { contactMethodsApi, pestIssuesApi, usersApi, crewMembersApi, CrewMember } from "@/services/api";
 import type { ContactMethod, PestIssue, User } from "@/utils/types";
 import toast from "react-hot-toast";
-import { Plus, Edit2, ToggleLeft, ToggleRight, Shield, ShieldOff } from "lucide-react";
+import { Plus, Edit2, ToggleLeft, ToggleRight, Shield, ShieldOff, UserPlus, ClipboardCheck } from "lucide-react";
 import clsx from "clsx";
+import { CreateInspectorModal } from "@/components/modals/CreateInspectorModal";
 
 type AdminTab = "contact-methods" | "pest-issues" | "users" | "crew";
 
@@ -17,6 +18,9 @@ export default function AdminPage() {
   const [newPI, setNewPI] = useState("");
   const qc = useQueryClient();
   const [newCrewID, setNewCrewID] = useState("");
+  const [isExternalModalOpen, setIsExternalModalOpen] = useState(false);
+  const [formData, setFormData] = useState({ name: "", email: "" });
+  const [isLoading, setIsLoading] = useState(false);
 
   // ── Contact Methods ───────────────────────────────────────
   const { data: contactMethods = [] } = useQuery<ContactMethod[]>({
@@ -29,6 +33,40 @@ export default function AdminPage() {
     queryKey: ["crew-members"],
     queryFn: crewMembersApi.list,
     enabled: tab === "crew",
+  });
+
+  const toggleInspector = useMutation({
+    mutationFn: async ({ id, is_inspector }: { id: string; is_inspector: boolean }) => {
+      const res = await fetch(`/api/v1/admin/users/${id}/inspector`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_inspector }),
+      });
+      if (!res.ok) throw new Error('Failed to update inspector status');
+      return res.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['users'] });
+      toast.success('Inspector status updated');
+    },
+  });
+
+  // Mutación para crear el inspector externo
+  const createExternalInspector = useMutation({
+    mutationFn: async (data: { full_name: string; email: string }) => {
+      const res = await fetch('/api/v1/admin/inspectors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('Failed to create external inspector');
+      return res.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['users'] });
+      setIsExternalModalOpen(false);
+      toast.success('External inspector created');
+    },
   });
 
   const createCrew = useMutation({
@@ -244,55 +282,93 @@ export default function AdminPage() {
 
       {/* ── Users ────────────────────────────────────────────── */}
       {tab === "users" && (
-        <div className="card divide-y divide-gray-100">
-          {users.length === 0 && (
-            <p className="p-4 text-sm text-gray-400 text-center">No users found.</p>
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <button 
+              onClick={() => setIsExternalModalOpen(true)}
+              className="btn-primary flex items-center gap-2 text-sm"
+            >
+              <UserPlus className="h-4 w-4" />
+              Add External Inspector
+            </button>
+          </div>
+
+          {isExternalModalOpen && (
+            <CreateInspectorModal
+              onClose={() => setIsExternalModalOpen(false)}
+              onSuccess={() => {
+                setIsExternalModalOpen(false);
+                qc.invalidateQueries({ queryKey: ["users"] });
+              }}
+            />
           )}
-          {users.map((u) => (
-            <div key={u.id} className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full bg-phantom-100 flex items-center justify-center text-xs font-bold text-phantom-700">
-                  {(u.full_name || u.email)[0].toUpperCase()}
+          <div className="card divide-y divide-gray-100">
+            {users.length === 0 && (
+              <p className="p-4 text-sm text-gray-400 text-center">No users found.</p>
+            )}
+            {users.map((u) => (
+              <div key={u.id} className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-phantom-100 flex items-center justify-center text-xs font-bold text-phantom-700">
+                    {(u.full_name || u.email)[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      {u.full_name || u.email.split("@")[0]}
+                    </p>
+                    <p className="text-xs text-gray-500">{u.email}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-800">
-                    {u.full_name || u.email.split("@")[0]}
-                  </p>
-                  <p className="text-xs text-gray-500">{u.email}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className={clsx(
-                  "text-xs font-medium rounded-full px-2.5 py-0.5 capitalize",
-                  u.role === "admin"
-                    ? "bg-phantom-100 text-phantom-700"
-                    : "bg-gray-100 text-gray-600"
-                )}>
-                  {u.role}
-                </span>
-                <button
-                  onClick={() =>
-                    updateRole.mutate({
-                      id: u.id,
-                      role: u.role === "admin" ? "user" : "admin",
-                    })
-                  }
-                  title={u.role === "admin" ? "Demote to user" : "Promote to admin"}
-                  className={clsx(
-                    "transition-colors",
+                <div className="flex items-center gap-3">
+                  <span className={clsx(
+                    "text-xs font-medium rounded-full px-2.5 py-0.5 capitalize",
                     u.role === "admin"
-                      ? "text-phantom-600 hover:text-gray-400"
-                      : "text-gray-400 hover:text-phantom-600"
-                  )}
-                >
-                  {u.role === "admin"
-                    ? <Shield className="h-4 w-4" />
-                    : <ShieldOff className="h-4 w-4" />
-                  }
-                </button>
+                      ? "bg-phantom-100 text-phantom-700"
+                      : "bg-gray-100 text-gray-600"
+                  )}>
+                    {u.role}
+                  </span>
+
+
+
+                  <div className="flex items-center gap-2 border-l pl-4 border-gray-100">
+                    {/* Toggle Inspector (NUEVO) */}
+                    <button
+                      onClick={() => toggleInspector.mutate({ id: u.id, is_inspector: !u.is_inspector })}
+                      title={u.is_inspector ? "Remove Inspector role" : "Mark as Inspector"}
+                      className={clsx(
+                        "transition-colors flex items-center gap-1",
+                        u.is_inspector ? "text-blue-600" : "text-gray-300 hover:text-blue-500"
+                      )}
+                    >
+                      <ClipboardCheck className="h-4 w-4" />
+                      {u.is_inspector && <span className="text-[10px] font-bold">INS</span>}
+                    </button>
+                    <button
+                      onClick={() =>
+                        updateRole.mutate({
+                          id: u.id,
+                          role: u.role === "admin" ? "user" : "admin",
+                        })
+                      }
+                      title={u.role === "admin" ? "Demote to user" : "Promote to admin"}
+                      className={clsx(
+                        "transition-colors",
+                        u.role === "admin"
+                          ? "text-phantom-600 hover:text-gray-400"
+                          : "text-gray-400 hover:text-phantom-600"
+                      )}
+                    >
+                      {u.role === "admin"
+                        ? <Shield className="h-4 w-4" />
+                        : <ShieldOff className="h-4 w-4" />
+                      }
+                    </button>
+                    </div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
       {/* ── Crew Members ────────────────────────────────────────── */}
@@ -360,7 +436,40 @@ export default function AdminPage() {
           </div>
         </div>
       )}
-
+  
+      {/* <Modal isOpen={isExternalModalOpen} onClose={() => setIsExternalModalOpen(false)}>
+        <form onSubmit={handleCreateExternal}>
+          <h3 className="text-lg font-bold mb-4">Add External Inspector</h3>
+          <p className="text-sm text-gray-500 mb-4">
+            This person will be available for commercial assignments but won't have login access.
+          </p>
+          
+          <div className="space-y-3">
+            <Input
+              label="Full Name"
+              value={formData.name}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              placeholder="e.g. Mike Contractor"
+              required
+            />
+            <Input
+              label="Email Address"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              placeholder="mike@gmail.com"
+              required
+            />
+          </div>
+          
+          <div className="flex justify-end gap-2 mt-6">
+            <button type="button" onClick={() => setIsExternalModalOpen(false)} className="btn-secondary">Cancel</button>
+            <button type="submit" className="btn-primary" disabled={isLoading}>
+              {isLoading ? "Saving..." : "Create Inspector"}
+            </button>
+          </div>
+        </form>
+      </Modal> */}
     </div>
   );
 }

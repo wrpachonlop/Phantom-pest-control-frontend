@@ -62,17 +62,6 @@ export function FollowUpModal({ clientId, followUp , onClose, onSuccess }: Props
     }
   }, [followUp, reset]);
 
-  // const mutation = useMutation({
-  //   mutationFn: (data: FormValues) =>
-  //     followUpsApi.create({ ...data, client_id: clientId } as CreateFollowUpForm),
-  //   onSuccess: () => {
-  //     toast.success("Follow-up added");
-  //     onSuccess();
-  //   },
-  //   onError: (err: any) => {
-  //     toast.error(err?.response?.data?.error || "Failed to add follow-up");
-  //   },
-  // });
   const mutation = useMutation({
     mutationFn: (data: FormValues) => {
       if (isEditing && followUp) {
