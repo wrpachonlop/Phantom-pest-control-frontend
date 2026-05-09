@@ -188,7 +188,7 @@ export const crewMembersApi = {
   list: () =>
     http.get<{ data: CrewMember[] }>("/crew-members").then((r) => r.data.data),
 
-  create: (data: { full_name: string; employee_id?: string }) =>
+  create: (data: { full_name: string; employee_id?: string ;email?: string; is_inspector?: boolean }) =>
     http.post<CrewMember>("/crew-members", data).then((r) => r.data),
 
   update: (id: string, data: { full_name?: string; is_active?: boolean }) =>

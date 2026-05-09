@@ -15,6 +15,8 @@ export default function AdminPage() {
   const [tab, setTab] = useState<AdminTab>("contact-methods");
   const [newCM, setNewCM] = useState("");
   const [newCrewName, setNewCrewName] = useState("");
+  const [isInspector, setIsInspector] = useState(false);
+  const [newCrewEmail, setNewCrewEmail] = useState("");
   const [newPI, setNewPI] = useState("");
   const qc = useQueryClient();
   const [newCrewID, setNewCrewID] = useState("");
@@ -67,12 +69,16 @@ export default function AdminPage() {
 
   const createCrew = useMutation({
     mutationFn: () => crewMembersApi.create({ 
-      full_name: newCrewName, 
-      employee_id: newCrewID 
+      full_name: newCrewName,
+      email: newCrewEmail,
+      employee_id: newCrewID,
+      is_inspector: isInspector
     }),
     onSuccess: () => {
       setNewCrewName("");
       setNewCrewID("");
+      setNewCrewEmail("");
+      setIsInspector(false);
       qc.invalidateQueries({ queryKey: ["crew-members"] });
       toast.success("Crew member added");
     },
@@ -381,19 +387,48 @@ export default function AdminPage() {
                   onChange={(e) => setNewCrewName(e.target.value)}
                 />
                 <input
+                  className="input-base flex-1"
+                  type="email"
+                  placeholder="Email"
+                  value={newCrewEmail}
+                  onChange={(e) => setNewCrewEmail(e.target.value)}
+                />
+                <input
                   className="input-base w-32"
-                  placeholder="ID (Optional)"
+                  placeholder="ID (Opt)"
                   value={newCrewID}
                   onChange={(e) => setNewCrewID(e.target.value)}
                 />
               </div>
+              <div className="flex items-center justify-between">
+              {/* Un simple checkbox o toggle al lado del botón de acción */}
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <input 
+                  type="checkbox"
+                  checked={isInspector}
+                  onChange={(e) => setIsInspector(e.target.checked)}
+                  className="rounded border-gray-300 text-phantom-600 focus:ring-phantom-500 h-4 w-4"
+                />
+                <span className="text-xs font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
+                  Assign as Inspector
+                </span>
+              </label>
+
               <button
+                onClick={() => newCrewName.trim() && createCrew.mutate()}
+                disabled={!newCrewName.trim() || !newCrewEmail.trim() || createCrew.isPending}
+                className="btn-primary px-6 flex items-center justify-center py-2"
+              >
+                <Plus className="h-4 w-4 mr-1" /> Add Member
+              </button>
+            </div>
+              {/* <button
                 onClick={() => newCrewName.trim() && createCrew.mutate()}
                 disabled={!newCrewName.trim() || createCrew.isPending}
                 className="btn-primary w-full flex justify-center py-2"
               >
                 <Plus className="h-4 w-4 mr-1" /> Add Member
-              </button>
+              </button> */}
             </div>
           </div>
 
@@ -432,40 +467,6 @@ export default function AdminPage() {
           </div>
         </div>
       )}
-  
-      {/* <Modal isOpen={isExternalModalOpen} onClose={() => setIsExternalModalOpen(false)}>
-        <form onSubmit={handleCreateExternal}>
-          <h3 className="text-lg font-bold mb-4">Add External Inspector</h3>
-          <p className="text-sm text-gray-500 mb-4">
-            This person will be available for commercial assignments but won't have login access.
-          </p>
-          
-          <div className="space-y-3">
-            <Input
-              label="Full Name"
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              placeholder="e.g. Mike Contractor"
-              required
-            />
-            <Input
-              label="Email Address"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-              placeholder="mike@gmail.com"
-              required
-            />
-          </div>
-          
-          <div className="flex justify-end gap-2 mt-6">
-            <button type="button" onClick={() => setIsExternalModalOpen(false)} className="btn-secondary">Cancel</button>
-            <button type="submit" className="btn-primary" disabled={isLoading}>
-              {isLoading ? "Saving..." : "Create Inspector"}
-            </button>
-          </div>
-        </form>
-      </Modal> */}
     </div>
   );
 }
