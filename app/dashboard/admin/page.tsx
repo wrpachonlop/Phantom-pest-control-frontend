@@ -20,9 +20,6 @@ export default function AdminPage() {
   const [newPI, setNewPI] = useState("");
   const qc = useQueryClient();
   const [newCrewID, setNewCrewID] = useState("");
-  const [isExternalModalOpen, setIsExternalModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: "", email: "" });
-  const [isLoading, setIsLoading] = useState(false);
 
   // ── Contact Methods ───────────────────────────────────────
   const { data: contactMethods = [] } = useQuery<ContactMethod[]>({
@@ -49,23 +46,6 @@ export default function AdminPage() {
   },
 });
 
-  // Mutación para crear el inspector externo
-  const createExternalInspector = useMutation({
-    mutationFn: async (data: { full_name: string; email: string }) => {
-      const res = await fetch('/api/v1/admin/inspectors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error('Failed to create external inspector');
-      return res.json();
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['users'] });
-      setIsExternalModalOpen(false);
-      toast.success('External inspector created');
-    },
-  });
 
   const createCrew = useMutation({
     mutationFn: () => crewMembersApi.create({ 
@@ -285,25 +265,7 @@ export default function AdminPage() {
       {/* ── Users ────────────────────────────────────────────── */}
       {tab === "users" && (
         <div className="space-y-4">
-          <div className="flex justify-end">
-            <button 
-              onClick={() => setIsExternalModalOpen(true)}
-              className="btn-primary flex items-center gap-2 text-sm"
-            >
-              <UserPlus className="h-4 w-4" />
-              Add External Inspector
-            </button>
-          </div>
 
-          {isExternalModalOpen && (
-            <CreateInspectorModal
-              onClose={() => setIsExternalModalOpen(false)}
-              onSuccess={() => {
-                setIsExternalModalOpen(false);
-                qc.invalidateQueries({ queryKey: ["users"] });
-              }}
-            />
-          )}
           <div className="card divide-y divide-gray-100">
             {users.length === 0 && (
               <p className="p-4 text-sm text-gray-400 text-center">No users found.</p>
@@ -422,13 +384,6 @@ export default function AdminPage() {
                 <Plus className="h-4 w-4 mr-1" /> Add Member
               </button>
             </div>
-              {/* <button
-                onClick={() => newCrewName.trim() && createCrew.mutate()}
-                disabled={!newCrewName.trim() || createCrew.isPending}
-                className="btn-primary w-full flex justify-center py-2"
-              >
-                <Plus className="h-4 w-4 mr-1" /> Add Member
-              </button> */}
             </div>
           </div>
 
