@@ -182,6 +182,8 @@ export interface CrewMember {
   employee_id?: string;
   is_active: boolean;
   created_at: string;
+  is_inspector: boolean;
+  email?: string;
 }
 
 export const crewMembersApi = {
@@ -205,6 +207,9 @@ export const commercialApi = {
   // Activa/Desactiva el flag de inspector en un usuario (Admin only)
   setInspectorFlag: (userId: string, isInspector: boolean) =>
     http.put(`/admin/users/${userId}/inspector`, { is_inspector: isInspector }).then((r) => r.data),
+
+  setInspectorFlagForCrewMember: (crewId: string, isInspector: boolean) =>
+    http.put(`/admin/crew/${crewId}/inspector`, { is_inspector: isInspector }).then((r) => r.data), 
     
   // Endpoint para crear inspector externo (el que no tiene login)
   createExternalInspector: (data: { full_name: string; email: string }) =>

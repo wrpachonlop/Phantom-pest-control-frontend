@@ -4,7 +4,7 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { contactMethodsApi, pestIssuesApi, usersApi, crewMembersApi, CrewMember, commercialApi } from "@/services/api";
 import type { ContactMethod, PestIssue, User } from "@/utils/types";
-import toast from "react-hot-toast";
+import  { toast } from "react-hot-toast";
 import { Plus, Edit2, ToggleLeft, ToggleRight, Shield, ShieldOff, UserPlus, ClipboardCheck } from "lucide-react";
 import clsx from "clsx";
 import { CreateInspectorModal } from "@/components/modals/CreateInspectorModal";
@@ -32,6 +32,21 @@ export default function AdminPage() {
     queryKey: ["crew-members"],
     queryFn: crewMembersApi.list,
     enabled: tab === "crew",
+  });
+  const toggleCrewInspector = useMutation({
+    mutationFn: ({ id, is_inspector }: { id: string; is_inspector: boolean }) =>
+      commercialApi.setInspectorFlagForCrewMember(id, is_inspector),
+    onSuccess: () => {
+      // IMPORTANTE: Verifica si usas "crew" o "crew-members" en tu useQuery original
+      qc.invalidateQueries({ queryKey: ["crew-members"] }); 
+      toast.success("Inspector status updated");
+    },
+    onError: (err: any) => {
+      // Log para depuración en desarrollo
+      console.error("Crew Toggle Error:", err);
+      const errorMessage = err?.response?.data?.error || "Failed to update status";
+      toast.error(errorMessage);
+    },
   });
 
   const toggleInspector = useMutation({
@@ -265,7 +280,13 @@ export default function AdminPage() {
       {/* ── Users ────────────────────────────────────────────── */}
       {tab === "users" && (
         <div className="space-y-4">
-
+          <div className="flex justify-between px-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+            <span>User Details</span>
+            <div className="flex gap-8 mr-2">
+              <span>Inspector</span>
+              <span>Admin Status</span>
+            </div>
+          </div>
           <div className="card divide-y divide-gray-100">
             {users.length === 0 && (
               <p className="p-4 text-sm text-gray-400 text-center">No users found.</p>
@@ -408,6 +429,22 @@ export default function AdminPage() {
                     )}
                   </div>
                 </div>
+                <div className="flex items-center gap-4">
+                  {/* NUEVO: Toggle Inspector para Crew */}
+                  <button
+                    onClick={() => toggleCrewInspector.mutate({ id: member.id, is_inspector: !member.is_inspector })}
+                    title={member.is_inspector ? "Remove Inspector Status" : "Make Inspector"}
+                    className={clsx(
+                      "flex items-center gap-1 px-2 py-1 rounded transition-colors",
+                      member.is_inspector 
+                        ? "bg-blue-50 text-blue-600 border border-blue-100" 
+                        : "text-gray-300 hover:text-blue-500"
+                    )}
+                  >
+                    <ClipboardCheck className="h-4 w-4" />
+                    {member.is_inspector && <span className="text-[10px] font-bold">INS</span>}
+                  </button>
+
                 <div className="flex items-center gap-2">
                   <span className={clsx(
                       "h-2 w-2 rounded-full",
@@ -416,6 +453,7 @@ export default function AdminPage() {
                     <span className="text-xs text-gray-500">
                       {member.is_active ? "Active" : "Inactive"}
                     </span>
+                </div>
                 </div>
               </div>
             ))}
