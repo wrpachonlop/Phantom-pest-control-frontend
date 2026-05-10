@@ -7,7 +7,6 @@ import type { ContactMethod, PestIssue, User } from "@/utils/types";
 import  { toast } from "react-hot-toast";
 import { Plus, Edit2, ToggleLeft, ToggleRight, Shield, ShieldOff, UserPlus, ClipboardCheck } from "lucide-react";
 import clsx from "clsx";
-import { CreateInspectorModal } from "@/components/modals/CreateInspectorModal";
 
 type AdminTab = "contact-methods" | "pest-issues" | "users" | "crew";
 
@@ -17,6 +16,7 @@ export default function AdminPage() {
   const [newCrewName, setNewCrewName] = useState("");
   const [isInspector, setIsInspector] = useState(false);
   const [newCrewEmail, setNewCrewEmail] = useState("");
+  const [newCrewPhone, setNewCrewPhone] = useState("");
   const [newPI, setNewPI] = useState("");
   const qc = useQueryClient();
   const [newCrewID, setNewCrewID] = useState("");
@@ -66,6 +66,7 @@ export default function AdminPage() {
     mutationFn: () => crewMembersApi.create({ 
       full_name: newCrewName,
       email: newCrewEmail,
+      phone_number: newCrewPhone,
       employee_id: newCrewID,
       is_inspector: isInspector
     }),
@@ -73,6 +74,7 @@ export default function AdminPage() {
       setNewCrewName("");
       setNewCrewID("");
       setNewCrewEmail("");
+      setNewCrewPhone("");
       setIsInspector(false);
       qc.invalidateQueries({ queryKey: ["crew-members"] });
       toast.success("Crew member added");
@@ -377,6 +379,13 @@ export default function AdminPage() {
                   onChange={(e) => setNewCrewEmail(e.target.value)}
                 />
                 <input
+                  className="input-base flex-1"
+                  type="tel"
+                  placeholder="Phone Number"
+                  value={newCrewPhone} // Asegúrate de declarar: const [newCrewPhone, setNewCrewPhone] = useState("");
+                  onChange={(e) => setNewCrewPhone(e.target.value)}
+                />
+                <input
                   className="input-base w-32"
                   placeholder="ID (Opt)"
                   value={newCrewID}
@@ -424,9 +433,14 @@ export default function AdminPage() {
                     <p className="text-sm font-medium text-gray-800">
                       {member.full_name}
                     </p>
+                    <div className="flex gap-2">
+                    {member.phone_number && (
+                      <p className="text-[10px] text-gray-500">📞 {member.phone_number}</p>
+                    )}
                     {member.employee_id && (
                       <p className="text-[10px] text-gray-400 font-mono">ID: {member.employee_id}</p>
                     )}
+                  </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
