@@ -194,7 +194,7 @@ export const crewMembersApi = {
   create: (data: { full_name: string; employee_id?: string ;email?: string; phone_number?: string; is_inspector?: boolean }) =>
     http.post<CrewMember>("/crew-members", data).then((r) => r.data),
 
-  update: (id: string, data: { full_name?: string; is_active?: boolean }) =>
+  update: (id: string, data: { full_name?: string; is_active?: boolean, email?: string; phone_number?: string; is_inspector?: boolean , employee_id?: string}) =>
     http.put<CrewMember>(`/crew-members/${id}`, data).then((r) => r.data),
 };
 

@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { contactMethodsApi, pestIssuesApi, usersApi, crewMembersApi, CrewMember, commercialApi } from "@/services/api";
 import type { ContactMethod, PestIssue, User } from "@/utils/types";
 import  { toast } from "react-hot-toast";
-import { Plus, Edit2, ToggleLeft, ToggleRight, Shield, ShieldOff, UserPlus, ClipboardCheck } from "lucide-react";
+import { Plus, Edit2, ToggleLeft, ToggleRight, Shield, ShieldOff, UserPlus, ClipboardCheck, Mail, Phone, X } from "lucide-react";
 import clsx from "clsx";
 
 type AdminTab = "contact-methods" | "pest-issues" | "users" | "crew";
@@ -17,6 +17,7 @@ export default function AdminPage() {
   const [isInspector, setIsInspector] = useState(false);
   const [newCrewEmail, setNewCrewEmail] = useState("");
   const [newCrewPhone, setNewCrewPhone] = useState("");
+  const [editingMember, setEditingMember] = useState<CrewMember | null>(null);
   const [newPI, setNewPI] = useState("");
   const qc = useQueryClient();
   const [newCrewID, setNewCrewID] = useState("");
@@ -61,7 +62,32 @@ export default function AdminPage() {
   },
 });
 
-
+  const updateCrewMutation = useMutation({
+  // Desestructuramos el id para la URL y el resto para el body
+  mutationFn: (member: CrewMember) =>
+    crewMembersApi.update(member.id, {
+      full_name: member.full_name,
+      email: member.email,
+      phone_number: member.phone_number,
+      employee_id: member.employee_id,
+      is_active: member.is_active,
+      is_inspector: member.is_inspector,
+    }),
+  onSuccess: () => {
+    // 1. Invalidamos la lista para ver los cambios reflejados
+    qc.invalidateQueries({ queryKey: ["crew-members"] });
+    
+    // 2. Cerramos el modal de edición
+    setEditingMember(null);
+    
+    // 3. Notificamos al usuario
+    toast.success("Crew member updated successfully");
+  },
+  onError: (err: any) => {
+    const errorMsg = err?.response?.data?.error || "Error updating crew member";
+    toast.error(errorMsg);
+  },
+});
   const createCrew = useMutation({
     mutationFn: () => crewMembersApi.create({ 
       full_name: newCrewName,
@@ -422,28 +448,33 @@ export default function AdminPage() {
               <p className="p-4 text-sm text-gray-400 text-center">No crew members yet.</p>
             )}
             {crewMembers.map((member) => (
-              <div key={member.id} className="flex items-center justify-between px-4 py-3">
+              <div key={member.id} className="group flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
-                    <span className="text-xs font-bold text-gray-600">
+                  <div className="h-10 w-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm">
+                    <span className="text-sm font-bold text-phantom-700">
                       {member.full_name[0].toUpperCase()}
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-800">
-                      {member.full_name}
-                    </p>
-                    <div className="flex gap-2">
-                    {member.phone_number && (
-                      <p className="text-[10px] text-gray-500">📞 {member.phone_number}</p>
-                    )}
-                    {member.employee_id && (
-                      <p className="text-[10px] text-gray-400 font-mono">ID: {member.employee_id}</p>
-                    )}
-                  </div>
+                    <p className="text-sm font-bold text-gray-800">{member.full_name}</p>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-0.5">
+                      <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                        <Mail className="h-3 w-3" /> {member.email}
+                      </span>
+                      {member.phone_number && (
+                        <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                          <Phone className="h-3 w-3" /> {member.phone_number}
+                        </span>
+                      )}
+                      {member.employee_id && (
+                        <span className="text-[10px] text-phantom-600 font-mono bg-phantom-50 px-1 rounded">
+                          ID: {member.employee_id}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
                   {/* NUEVO: Toggle Inspector para Crew */}
                   <button
                     onClick={() => toggleCrewInspector.mutate({ id: member.id, is_inspector: !member.is_inspector })}
@@ -458,19 +489,108 @@ export default function AdminPage() {
                     <ClipboardCheck className="h-4 w-4" />
                     {member.is_inspector && <span className="text-[10px] font-bold">INS</span>}
                   </button>
-
-                <div className="flex items-center gap-2">
-                  <span className={clsx(
-                      "h-2 w-2 rounded-full",
-                      member.is_active ? "bg-green-500" : "bg-gray-300"
-                    )} />
-                    <span className="text-xs text-gray-500">
-                      {member.is_active ? "Active" : "Inactive"}
-                    </span>
-                </div>
+                  <button 
+                    onClick={() => setEditingMember(member)}
+                    className="p-2 text-gray-400 hover:text-phantom-600 hover:bg-phantom-50 rounded-lg transition-all"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <span className={clsx(
+                        "h-2 w-2 rounded-full",
+                        member.is_active ? "bg-green-500" : "bg-gray-300"
+                      )} />
+                      <span className="text-xs text-gray-500">
+                        {member.is_active ? "Active" : "Inactive"}
+                      </span>
+                  </div>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        
+      )}
+      {editingMember && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-gray-800">Edit Crew Member</h3>
+              <button onClick={() => setEditingMember(null)} className="text-gray-400 hover:text-gray-600">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase">Full Name</label>
+                <input 
+                  className="input-base w-full"
+                  value={editingMember.full_name}
+                  onChange={e => setEditingMember({...editingMember, full_name: e.target.value})}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Email</label>
+                  <input 
+                    className="input-base w-full"
+                    value={editingMember.email}
+                    onChange={e => setEditingMember({...editingMember, email: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Phone</label>
+                  <input 
+                    className="input-base w-full"
+                    value={editingMember.phone_number}
+                    onChange={e => setEditingMember({...editingMember, phone_number: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Role & Status</span>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={editingMember.is_inspector}
+                      onChange={e => setEditingMember({...editingMember, is_inspector: e.target.checked})}
+                      className="rounded border-gray-300 text-phantom-600"
+                    />
+                    <span className="text-xs text-gray-600">Inspector</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={editingMember.is_active}
+                      onChange={e => setEditingMember({...editingMember, is_active: e.target.checked})}
+                      className="rounded border-gray-300 text-phantom-600"
+                    />
+                    <span className="text-xs text-gray-600">Active</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-gray-50 border-t flex gap-3">
+              <button 
+                onClick={() => setEditingMember(null)}
+                className="btn-secondary flex-1"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => updateCrewMutation.mutate(editingMember)}
+                className="btn-primary flex-1"
+                disabled={updateCrewMutation.isPending}
+              >
+                {updateCrewMutation.isPending ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
           </div>
         </div>
       )}
