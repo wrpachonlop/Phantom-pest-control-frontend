@@ -5,7 +5,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { clientsApi, contactMethodsApi, pestIssuesApi } from "@/services/api";
+import { clientsApi, contactMethodsApi, crewMembersApi, pestIssuesApi, usersApi } from "@/services/api";
 import type { CreateClientForm, ContactMethod, PestIssue, DuplicateCheckResult } from "@/utils/types";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -30,11 +30,25 @@ const schema = z.object({
   phones: z.array(z.object({ phone_number: z.string(), label: z.string() })),
   emails: z.array(z.object({ email: z.string(), label: z.string() })),
   pest_issues: z.array(z.string()),
+  lead_source: z.enum(["office", "crew_member"]).optional(),
+  crew_member_id: z.string().optional(),
+  inspector_id: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.property_type === "commercial") {
+    if (!data.inspector_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Inspector is required for commercial leads",
+        path: ["inspector_id"],
+      });
+    }
+  }
 });
 
 type FormValues = z.infer<typeof schema>;
 
 export default function NewClientPage() {
+  
   const router = useRouter();
   const qc = useQueryClient();
   const [duplicateResult, setDuplicateResult] = useState<DuplicateCheckResult | null>(null);
@@ -74,6 +88,15 @@ export default function NewClientPage() {
     },
   });
 
+  const { data: crewMembers = [] } = useQuery({
+    queryKey: ["crew-members"],
+    queryFn: crewMembersApi.list,
+  });
+
+  const { data: users = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: usersApi.list, // O el servicio que usemos para listar staff
+  });
   const { fields: phoneFields, append: addPhone, remove: removePhone } = useFieldArray({ control, name: "phones" });
   const { fields: emailFields, append: addEmail, remove: removeEmail } = useFieldArray({ control, name: "emails" });
 
@@ -172,6 +195,51 @@ export default function NewClientPage() {
             </div>
           </div>
         </div>
+
+        {/* ── SECCIÓN COMERCIAL (BLOQUE 3) ────────────────────────── */}
+        {watchPropertyType === "commercial" && (
+          <div className="card p-5 border-l-4 border-blue-500 bg-blue-50/30">
+            <h2 className="text-sm font-bold text-blue-700 mb-4 uppercase tracking-wider flex items-center gap-2">
+              <ArrowRight className="h-4 w-4" /> Commercial Lead Requirements
+            </h2>
+            <div className="grid grid-cols-2 gap-4">
+              
+              {/* Selector de Inspector (Obligatorio para Commercial) */}
+              <div className="col-span-2 md:col-span-1">
+                <label className="field-label font-bold text-blue-900">Assigned Inspector *</label>
+                <select 
+                  className={clsx("input-base", errors.inspector_id && "border-red-500")}
+                  {...register("inspector_id")}
+                >
+                  <option value="">Select Inspector...</option>
+                  {users
+                    .filter((u) => u.is_inspector)
+                    .map((u) => (
+                      <option key={u.id} value={u.id}>{u.full_name}</option>
+                    ))}
+                </select>
+                {errors.inspector_id && <p className="mt-1 text-[10px] text-red-500 font-bold">Required for commercial leads</p>}
+              </div>
+
+              {/* Selector de Staff Member (Solo si el método de contacto es Staff) */}
+              {selectedContactMethod?.name === "Referred by Staff member (please mention the technician)" && (
+                <div className="col-span-2 md:col-span-1 animate-in fade-in slide-in-from-top-1">
+                  <label className="field-label font-bold text-blue-900">Referring Staff Member *</label>
+                  <select 
+                    className={clsx("input-base", errors.crew_member_id && "border-red-500")}
+                    {...register("crew_member_id")}
+                  >
+                    <option value="">Choose Technician...</option>
+                    {crewMembers.map((m) => (
+                      <option key={m.id} value={m.id}>{m.full_name}</option>
+                    ))}
+                  </select>
+                  {errors.crew_member_id && <p className="mt-1 text-[10px] text-red-500 font-bold">Please select the staff member</p>}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* ── Row 2: Contact ──────────────────────────────── */}
         <div className="card p-5">
@@ -326,8 +394,34 @@ export default function NewClientPage() {
         {/* ── Row 5: Status + Flags ───────────────────────── */}
         <div className="card p-5">
           <h2 className="text-sm font-semibold text-gray-700 mb-4">Status & Flags</h2>
+
+          {watchPropertyType === "commercial" ? (
+            <div className="relative">
+              <select 
+                className="input-base bg-gray-100 text-gray-500 cursor-not-allowed appearance-none" 
+                value="blue" // Forzamos a "blue" (Assigned) visualmente
+                disabled
+              >
+                <option value="blue">Assigned (Commercial Default)</option>
+              </select>
+              <div className="absolute right-3 top-2.5">
+                <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded">LOCKED</span>
+              </div>
+              {/* Input oculto para que el form envíe el valor correcto */}
+              <input type="hidden" {...register("status")} value="blue" />
+            </div>
+          ):(
+            <select className="input-base" {...register("status")}>
+            <option value="blue">Blue — Initial</option>
+            <option value="white">White — Contacted</option>
+            <option value="yellow">Yellow — In Progress</option>
+            <option value="purple">Purple — Potential</option>
+            <option value="green">Green — Sold</option>
+            <option value="red">Red — Not Sold</option>
+          </select>
+          )}
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            {/* <div>
               <label className="field-label">Status</label>
               <select className="input-base" {...register("status")}>
                 <option value="blue">Blue — Initial</option>
@@ -337,7 +431,7 @@ export default function NewClientPage() {
                 <option value="green">Green — Sold</option>
                 <option value="red">Red — Not Sold</option>
               </select>
-            </div>
+            </div> */}
             <div className="flex items-center gap-3 pt-5">
               <input
                 type="checkbox"
