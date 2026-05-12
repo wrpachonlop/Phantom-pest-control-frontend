@@ -8,7 +8,7 @@ export type ClientStatus = "blue" | "white" | "yellow" | "purple" | "green" | "r
 export type LocationType = "address" | "city";
 export type FollowUpType = "inbound" | "outbound" | "sold";
 export type AuditAction = "create" | "update" | "delete";
-export type UserRole = "admin" | "user";
+export type UserRole = "admin" | "user" | "crew";
 
 // ── Status display helpers ──────────────────────────────────
 

@@ -5,7 +5,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { clientsApi, contactMethodsApi, crewMembersApi, pestIssuesApi, usersApi } from "@/services/api";
+import { clientsApi, commercialApi, contactMethodsApi, crewMembersApi, pestIssuesApi, usersApi } from "@/services/api";
 import type { CreateClientForm, ContactMethod, PestIssue, DuplicateCheckResult } from "@/utils/types";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -93,9 +93,9 @@ export default function NewClientPage() {
     queryFn: crewMembersApi.list,
   });
 
-  const { data: users = [] } = useQuery({
-    queryKey: ["users"],
-    queryFn: usersApi.list, // O el servicio que usemos para listar staff
+  const { data: inspectors = [] } = useQuery({
+    queryKey: ["inspectors"],
+    queryFn: commercialApi.listInspectors, 
   });
   const { fields: phoneFields, append: addPhone, remove: removePhone } = useFieldArray({ control, name: "phones" });
   const { fields: emailFields, append: addEmail, remove: removeEmail } = useFieldArray({ control, name: "emails" });
@@ -212,11 +212,11 @@ export default function NewClientPage() {
                   {...register("inspector_id")}
                 >
                   <option value="">Select Inspector...</option>
-                  {users
-                    .filter((u) => u.is_inspector)
-                    .map((u) => (
-                      <option key={u.id} value={u.id}>{u.full_name}</option>
-                    ))}
+                  {inspectors.map((ins) => (
+                    <option key={ins.id} value={ins.id}>
+                      {ins.full_name} {ins.role === 'crew' ? '(Technician)' : '(Admin)'}
+                    </option>
+                  ))}
                 </select>
                 {errors.inspector_id && <p className="mt-1 text-[10px] text-red-500 font-bold">Required for commercial leads</p>}
               </div>
