@@ -42,6 +42,13 @@ const schema = z.object({
         path: ["inspector_id"],
       });
     }
+    if (data.lead_source === "crew_member" && !data.crew_member_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please select the referring staff member",
+        path: ["crew_member_id"],
+      });
+    }
   }
 });
 
@@ -85,6 +92,9 @@ export default function NewClientPage() {
       phones: [{ phone_number: "", label: "primary" }],
       emails: [],
       pest_issues: [],
+      lead_source: "office",
+      inspector_id: "",
+      crew_member_id: "",
     },
   });
 
