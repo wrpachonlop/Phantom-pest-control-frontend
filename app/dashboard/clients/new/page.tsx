@@ -31,8 +31,8 @@ const schema = z.object({
   emails: z.array(z.object({ email: z.string(), label: z.string() })),
   pest_issues: z.array(z.string()),
   lead_source: z.enum(["office", "crew_member"]).optional(),
-  crew_member_id: z.string().optional(),
-  inspector_id: z.string().optional(),
+  crew_member_id: z.string().uuid().nullable().optional(),
+  inspector_id: z.string().uuid().nullable().optional(),
 }).superRefine((data, ctx) => {
   if (data.property_type === "commercial") {
     if (!data.inspector_id) {
@@ -93,8 +93,8 @@ export default function NewClientPage() {
       emails: [],
       pest_issues: [],
       lead_source: "office",
-      inspector_id: "",
-      crew_member_id: "",
+      inspector_id: null,
+      crew_member_id: null,
     },
   });
 
