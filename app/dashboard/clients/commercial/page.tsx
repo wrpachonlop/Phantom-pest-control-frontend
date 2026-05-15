@@ -122,7 +122,6 @@ export default function CommercialClientsPage() {
               <th className="w-8">#</th>
               <SortTh label="Company Name" field="client_name" params={params} onSort={handleSort} />
               <th>Inspector</th>
-              <th>Workflow</th>
               <SortTh label="Status" field="status" params={params} onSort={handleSort} />
               <th>Contact Method</th>
               <th>Location</th>
@@ -171,12 +170,6 @@ export default function CommercialClientsPage() {
                             {client.workflow_status || 'Assigned'}
                         </span>
                     </div>
-                  </td>
-                  <td>
-                    <span className={clsx("status-badge", STATUS_COLORS[client.status])}>
-                      <span className={clsx("h-1.5 w-1.5 rounded-full", STATUS_DOT[client.status])} />
-                      {STATUS_LABELS[client.status]}
-                    </span>
                   </td>
                   <td className="text-xs text-gray-500">{cm?.name || "—"}</td>
                   <td className="text-xs max-w-[200px] truncate">{client.location_value || "—"}</td>
