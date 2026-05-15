@@ -23,6 +23,7 @@ export default function ClientsPage() {
   const [params, setParams] = useState<ClientListParams>({
     page: 1, page_size: PAGE_SIZE,
     sort_by: "created_at", sort_dir: "desc",
+     property_type: "residential" // <--- Filtro base
   });
   const [search, setSearch] = useState("");
 
