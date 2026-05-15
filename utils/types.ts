@@ -5,6 +5,7 @@
 export type ClientType = "new" | "existing" | "recurrent" | "spam";
 export type PropertyType = "residential" | "commercial";
 export type ClientStatus = "blue" | "white" | "yellow" | "purple" | "green" | "red";
+export type CommercialStatus = "assigned" | "pending" | "approved" | "declined" | "installed" | "cancelled";
 export type LocationType = "address" | "city";
 export type FollowUpType = "inbound" | "outbound" | "sold";
 export type AuditAction = "create" | "update" | "delete";

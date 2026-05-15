@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { clientsApi, contactMethodsApi, ClientListParams, usersApi } from "@/services/api";
-import type { Client, ClientStatus, PaginatedResponse, ContactMethod, User } from "@/utils/types";
+import type { Client, ClientStatus, PaginatedResponse, ContactMethod, User, CommercialStatus } from "@/utils/types";
 import { COMMERCIAL_STATUS_COLORS, COMMERCIAL_STATUS_LABELS } from "@/utils/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -53,7 +53,7 @@ export default function CommercialClientsPage() {
     setParams((p) => ({ ...p, search: val || undefined, page: 1 }));
   }, []);
 
-  const handleStatusFilter = (status?: ClientStatus) => {
+  const handleStatusFilter = (status?: ClientStatus | CommercialStatus) => {
     setParams((p) => ({ ...p, status, page: 1 }));
   };
 
@@ -90,18 +90,32 @@ export default function CommercialClientsPage() {
 
         {/* Status filters */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          {([undefined, "blue", "white", "yellow", "purple", "green", "red"] as (ClientStatus | undefined)[]).map((s) => (
+          {/* Filtro para "All" (Todos los estados comerciales) */}
+          <button
+            onClick={() => setParams((p) => ({ ...p, status: undefined, page: 1 }))}
+            className={clsx(
+              "rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors border",
+              params.status === undefined
+                ? "bg-amber-600 text-white border-amber-600"
+                : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+            )}
+          >
+            All
+          </button>
+
+          {/* Filtros para los estados del ENUM Comercial */}
+          {(["assigned", "pending", "approved", "declined", "installed", "cancelled"] as const).map((s) => (
             <button
-              key={s ?? "all"}
-              onClick={() => handleStatusFilter(s)}
+              key={s}
+              onClick={() => handleStatusFilter(s)} // Asegúrate de que esta función acepte strings ahora en lugar de ClientStatus viejo
               className={clsx(
                 "rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors border",
                 params.status === s
-                  ? s ? COMMERCIAL_STATUS_COLORS[s] : "bg-amber-600 text-white border-amber-600"
+                  ? COMMERCIAL_STATUS_COLORS[s] // Usa tus nuevos estilos (ej: bg-blue-50 text-blue-700...)
                   : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
               )}
             >
-              {s ? COMMERCIAL_STATUS_LABELS[s] : "All"}
+              {COMMERCIAL_STATUS_LABELS[s]}
             </button>
           ))}
         </div>
