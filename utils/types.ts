@@ -102,6 +102,8 @@ export interface Client {
   created_by: string;
   created_at: string;
   updated_at: string;
+  inspector_id: string | null;
+  workflow_status: string | null;
 }
 
 export interface ClientFull extends Client {
