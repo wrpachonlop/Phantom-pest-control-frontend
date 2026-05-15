@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { clientsApi, contactMethodsApi, ClientListParams, usersApi } from "@/services/api";
 import type { Client, ClientStatus, PaginatedResponse, ContactMethod, User } from "@/utils/types";
-import { STATUS_LABELS, STATUS_COLORS, STATUS_DOT } from "@/utils/types";
+import { COMMERCIAL_STATUS_COLORS, COMMERCIAL_STATUS_LABELS } from "@/utils/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
@@ -97,11 +97,11 @@ export default function CommercialClientsPage() {
               className={clsx(
                 "rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors border",
                 params.status === s
-                  ? s ? STATUS_COLORS[s] : "bg-amber-600 text-white border-amber-600"
+                  ? s ? COMMERCIAL_STATUS_COLORS[s] : "bg-amber-600 text-white border-amber-600"
                   : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
               )}
             >
-              {s ? STATUS_LABELS[s] : "All"}
+              {s ? COMMERCIAL_STATUS_LABELS[s] : "All"}
             </button>
           ))}
         </div>
