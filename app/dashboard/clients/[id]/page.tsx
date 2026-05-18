@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { clientsApi, followUpsApi, notesApi } from "@/services/api";
-import type { ClientFull, FollowUp, Note, AuditLog, UserRole } from "@/utils/types";
-import { STATUS_LABELS, STATUS_COLORS, STATUS_DOT } from "@/utils/types";
+import type { ClientFull, FollowUp, Note, AuditLog, UserRole, ClientStatus } from "@/utils/types";
+import { STATUS_LABELS, STATUS_COLORS, STATUS_DOT, COMMERCIAL_STATUS_COLORS, COMMERCIAL_STATUS_LABELS } from "@/utils/types";
 import { useParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import clsx from "clsx";
@@ -21,6 +21,7 @@ import { formatDateOnly } from "@/src/lib/utils";
 type Tab = "follow-ups" | "notes" | "audit";
 
 export default function ClientDetailPage() {
+
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const qc = useQueryClient();
@@ -128,6 +129,30 @@ export default function ClientDetailPage() {
     sold:     "bg-green-50 text-green-700 border-green-200",
   };
 
+
+  const isCommercial = client.property_type === "commercial";
+
+  let badgeColor = "";
+  let dotColor = "";
+  let label = "";
+
+
+ if (isCommercial) {
+    // Aseguramos un fallback en string plano para el flujo comercial
+    const wfStatus = client.workflow_status ?? "assigned";
+    
+    badgeColor = COMMERCIAL_STATUS_COLORS[wfStatus as keyof typeof COMMERCIAL_STATUS_COLORS] || COMMERCIAL_STATUS_COLORS["assigned"];
+    dotColor = COMMERCIAL_STATUS_COLORS[wfStatus as keyof typeof COMMERCIAL_STATUS_COLORS] || COMMERCIAL_STATUS_COLORS["assigned"];
+    label = COMMERCIAL_STATUS_LABELS[wfStatus as keyof typeof COMMERCIAL_STATUS_LABELS] || COMMERCIAL_STATUS_LABELS["assigned"];
+  } else {
+    // Para residenciales, forzamos el tipo ClientStatus para que haga match con tus Records tradicionales
+    const resStatus = (client.status as ClientStatus) || "blue";
+    
+    badgeColor = STATUS_COLORS[resStatus];
+    dotColor = STATUS_DOT[resStatus];
+    label = STATUS_LABELS[resStatus];
+  }
+
   return (
     <div className="flex flex-col h-full animate-fade-in">
       {/* Header */}
@@ -144,9 +169,9 @@ export default function ClientDetailPage() {
             <h1 className="text-lg font-bold text-gray-900">
               {client.client_name || <span className="text-gray-400 italic">Unnamed Client</span>}
             </h1>
-            <span className={clsx("status-badge", STATUS_COLORS[client.status])}>
-              <span className={clsx("h-1.5 w-1.5 rounded-full", STATUS_DOT[client.status])} />
-              {STATUS_LABELS[client.status]}
+            <span className={clsx("status-badge", badgeColor)}>
+              <span className={clsx("h-1.5 w-1.5 rounded-full", dotColor)} />
+              {label}
             </span>
             {client.after_hours && (
               <span className="inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
