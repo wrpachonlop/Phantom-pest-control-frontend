@@ -124,6 +124,7 @@ export interface Client {
   updated_at: string;
   inspector_id: string | null;
   workflow_status: string | null;
+  inspector_name: string | null;
 }
 
 export interface ClientFull extends Client {

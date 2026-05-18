@@ -152,9 +152,6 @@ export default function CommercialClientsPage() {
             )}
             {clients.map((client, i) => {
               const cm = contactMethods?.find((m) => m.id === client.contact_method_id);
-              // Buscamos el inspector asignado en nuestra lista de usuarios
-              const inspector = users?.find(u => u.id === client.inspector_id);
-
               return (
                 <tr
                   key={client.id}
@@ -173,7 +170,7 @@ export default function CommercialClientsPage() {
                     <div className="flex items-center gap-1.5">
                         <UserIcon className="h-3 w-3 text-gray-400" />
                         <span className="text-xs text-gray-700">
-                            {inspector?.full_name || <span className="text-gray-300 italic">Unassigned</span>}
+                            {client.inspector_name || <span className="text-gray-300 italic">Unassigned</span>}
                         </span>
                     </div>
                   </td>
