@@ -537,6 +537,22 @@ export default function ClientDetailPage() {
           }}
         />
       )}
+      {showWorkflowModal && (
+        <CommercialFollowUpModal
+            currentWorkflowStatus={client.workflow_status ?? "assigned"}
+            clientId={client.id}
+            onClose={() => setShowWorkflowModal(false)}
+            onSuccess={() => {
+              // Aquí disparas el refresh de la data del cliente para actualizar la UI
+              setShowWorkflowModal(false);
+              // Invalidamos la caché exactamente igual para actualizar la UI corporativa
+               qc.invalidateQueries({ queryKey: ["follow-ups", id] });
+               qc.invalidateQueries({ queryKey: ["client", id] });
+             }}
+          />
+      )}
+
+            
     </div>
   );
 }
@@ -560,16 +576,3 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 
-//  <CommercialFollowUpModal
-//             currentWorkflowStatus={client.workflow_status ?? "assigned"}
-//             clientId={client.id}
-//             onClose={() => setShowFollowUpModal(false)}
-//             onSuccess={() => {
-//               // Aquí disparas el refresh de la data del cliente para actualizar la UI
-//               setShowFollowUpModal(false);
-//               setSelectedFollowUp(null);
-//               // Invalidamos la caché exactamente igual para actualizar la UI corporativa
-//               qc.invalidateQueries({ queryKey: ["follow-ups", id] });
-//               qc.invalidateQueries({ queryKey: ["client", id] });
-//             }}
-//           />
