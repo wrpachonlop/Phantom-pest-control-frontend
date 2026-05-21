@@ -12,11 +12,13 @@ import toast from "react-hot-toast";
 import { usersApi } from "@/services/api";
 import {
   ArrowLeft, Phone, Mail, MapPin, Clock, Building2, Home,
-  Plus, Trash2, FileText, Activity, ChevronDown, Edit2
+  Plus, Trash2, FileText, Activity, ChevronDown, Edit2,
+  ArrowRightLeft
 } from "lucide-react";
 import { FollowUpModal } from "@/components/modals/FollowUpModal";
 import { EditClientModal } from "@/components/modals/EditClientModal";
 import { formatDateOnly } from "@/src/lib/utils";
+import { CommercialFollowUpModal } from "@/components/modals/CommercialFollowUpModal";
 
 type Tab = "follow-ups" | "notes" | "audit";
 
@@ -30,6 +32,7 @@ export default function ClientDetailPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [newNote, setNewNote] = useState("");
   const [selectedFollowUp, setSelectedFollowUp] = useState<FollowUp | null>(null); // Para editar follow-ups
+  const [showWorkflowModal, setShowWorkflowModal] = useState(false); // Nuevo estado para el modal de workflow
 
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: usersApi.me });
   const isAdmin = me?.role === "admin" as UserRole;
@@ -178,6 +181,15 @@ export default function ClientDetailPage() {
                 <Clock className="h-3 w-3" /> After Hours
               </span>
             )}
+            {client.property_type === "commercial" && (
+            <button
+              onClick={() => setShowWorkflowModal(true)}
+              className="inline-flex items-center gap-x-1.5 rounded-md bg-amber-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-amber-500 transition-colors ml-auto sm:ml-2"
+            >
+              <ArrowRightLeft className="h-3.5 w-3.5" />
+              Update Stage
+            </button>
+          )}
           </div>
           <p className="text-xs text-gray-500 mt-0.5">
             {client.property_type === "residential"
@@ -348,7 +360,8 @@ export default function ClientDetailPage() {
                     <FileText className="h-10 w-10 text-gray-300 mx-auto mb-3" />
                     <p className="text-sm text-gray-500">No follow-ups yet.</p>
                     <button onClick={() => setShowFollowUpModal(true)} className="btn-primary mt-3 text-xs py-1.5">
-                      <Plus className="h-3.5 w-3.5" /> Add First Follow-up
+                      <Plus className="h-3.5 w-3.5" /> 
+                      {client.property_type === "commercial" ? "Add Commercial Follow-up" : "Add First Follow-up"}
                     </button>
                   </div>
                 )}
@@ -512,7 +525,7 @@ export default function ClientDetailPage() {
             qc.invalidateQueries({ queryKey: ["client", id] });
           }}
         />
-      )}
+        )}
 
       {showEditModal && client && (
         <EditClientModal
@@ -545,3 +558,18 @@ function InfoRow({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+
+//  <CommercialFollowUpModal
+//             currentWorkflowStatus={client.workflow_status ?? "assigned"}
+//             clientId={client.id}
+//             onClose={() => setShowFollowUpModal(false)}
+//             onSuccess={() => {
+//               // Aquí disparas el refresh de la data del cliente para actualizar la UI
+//               setShowFollowUpModal(false);
+//               setSelectedFollowUp(null);
+//               // Invalidamos la caché exactamente igual para actualizar la UI corporativa
+//               qc.invalidateQueries({ queryKey: ["follow-ups", id] });
+//               qc.invalidateQueries({ queryKey: ["client", id] });
+//             }}
+//           />

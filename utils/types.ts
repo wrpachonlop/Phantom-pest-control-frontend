@@ -11,6 +11,17 @@ export type FollowUpType = "inbound" | "outbound" | "sold";
 export type AuditAction = "create" | "update" | "delete";
 export type UserRole = "admin" | "user" | "crew";
 
+
+// Definimos las transiciones permitidas según el prompt
+export const COMMERCIAL_TRANSITIONS: Record<string, string[]> = {
+  assigned: ["pending", "approved", "declined"],
+  pending: ["approved", "declined"],
+  approved: ["installed", "cancelled"],
+  installed: ["cancelled"],
+  declined: [], // Estado terminal
+  cancelled: []  // Estado terminal
+};
+
 // ── Status display helpers ──────────────────────────────────
 
 export const COMMERCIAL_STATUS_LABELS: Record<string, string> = {
