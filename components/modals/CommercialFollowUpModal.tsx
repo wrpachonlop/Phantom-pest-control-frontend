@@ -1,6 +1,7 @@
 import { COMMERCIAL_TRANSITIONS } from "@/utils/types";
+import { clsx } from "clsx";
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 
 interface FollowUpFormProps {
   currentWorkflowStatus: string; // Ej: "assigned"
@@ -57,7 +58,18 @@ export const CommercialFollowUpModal: React.FC<FollowUpFormProps> = ({
   const selectedFrequency = watch("service_frequency");
 
   // Validar si requiere intervalo (Solo para daily, weekly, monthly)
-const requiresInterval = ["daily", "weekly", "monthly"].includes(selectedFrequency);
+  const requiresInterval = ["daily", "weekly", "monthly"].includes(selectedFrequency);
+
+  const serviceAddressVal = watch("service_address");
+  const sameAsServiceVal = watch("same_as_service");
+  const { setValue } = useFormContext();
+
+  React.useEffect(() => {
+  if (sameAsServiceVal && serviceAddressVal) {
+    // Copia el valor de service a billing de forma reactiva
+    setValue("billing_address", serviceAddressVal, { shouldValidate: true });
+  }
+}, [sameAsServiceVal, serviceAddressVal, setValue]);
 
   // El link de Drive es obligatorio para: pending, approved, declined
   const isDriveLinkRequired = ["pending", "approved", "declined"].includes(selectedStatus);
@@ -164,12 +176,37 @@ const requiresInterval = ["daily", "weekly", "monthly"].includes(selectedFrequen
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm"
                   />
                 </div>
+                {/* CHECKBOX: SAME AS SERVICE */}
+                <div className="flex items-center">
+                  <input
+                    id="same_as_service"
+                    type="checkbox"
+                    {...register("same_as_service")}
+                    onChange={(e) => {
+                      // Aseguramos que el trigger nativo de react-hook-form y nuestra lógica convivan
+                      register("same_as_service").onChange(e);
+                      if (e.target.checked && serviceAddressVal) {
+                        setValue("billing_address", serviceAddressVal, { shouldValidate: true });
+                      }
+                    }}
+                    className="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                  />
+                  <label htmlFor="same_as_service" className="ml-2 block text-xs text-gray-600 cursor-pointer select-none">
+                    Billing address is the same as service address
+                  </label>
+                </div>
+
                 <div>
                   <label className="block text-xs font-medium text-gray-700">Billing Address *</label>
                   <input
                     type="text"
                     {...register("billing_address", { required: showFullBusinessForm })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm"
+                    placeholder={sameAsServiceVal ? "Same as service address" : "Billing company address"}
+                    disabled={sameAsServiceVal} // <--- Bloquea el campo si es idéntico para evitar errores
+                    className={clsx(
+                      "mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm",
+                      sameAsServiceVal && "bg-gray-50 text-gray-500 cursor-not-allowed border-gray-200" // Estilo visual de bloqueado
+                    )}
                   />
                 </div>
                 <div>
