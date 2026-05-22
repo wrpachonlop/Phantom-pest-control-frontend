@@ -121,16 +121,16 @@ export const CommercialFollowUpModal: React.FC<FollowUpFormProps> = ({
           {isDriveLinkRequired && (
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Proposal Link (Google Drive) *
+                Proposal Link (Google Docs) *
               </label>
               <input
                 type="url"
-                placeholder="https://drive.google.com/..."
+                placeholder="https://docs.google.com/..."
                 {...register("proposal_drive_link", {
                   required: isDriveLinkRequired ? "The proposal link is required for this status" : false,
                   pattern: {
-                    value: /drive\.google\.com/,
-                    message: "Must be a valid Google Drive link"
+                    value: /docs\.google\.com/,
+                    message: "Must be a valid Google Docs link"
                   }
                 })}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm"
@@ -293,7 +293,7 @@ export const CommercialFollowUpModal: React.FC<FollowUpFormProps> = ({
                     <input
                       type="number"
                       min="1"
-                      placeholder="Ej: 2 (Cada 2 días)"
+                      placeholder="Ex: 2 (every 2 days/weeks/months)"
                       {...register("frequency_interval", { required: requiresInterval, valueAsNumber: true })}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm"
                     />
