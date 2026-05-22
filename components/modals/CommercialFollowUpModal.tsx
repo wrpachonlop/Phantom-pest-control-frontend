@@ -1,7 +1,7 @@
 import { COMMERCIAL_TRANSITIONS } from "@/utils/types";
 import { clsx } from "clsx";
 import React from "react";
-import { useForm, useFormContext } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 interface FollowUpFormProps {
   currentWorkflowStatus: string; // Ej: "assigned"
@@ -46,6 +46,7 @@ export const CommercialFollowUpModal: React.FC<FollowUpFormProps> = ({
     register,
     watch,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FollowUpInputs>({
     defaultValues: {
@@ -62,7 +63,6 @@ export const CommercialFollowUpModal: React.FC<FollowUpFormProps> = ({
 
   const serviceAddressVal = watch("service_address");
   const sameAsServiceVal = watch("same_as_service");
-  const { setValue } = useFormContext();
 
   React.useEffect(() => {
   if (sameAsServiceVal && serviceAddressVal) {
