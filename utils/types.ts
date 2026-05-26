@@ -145,7 +145,7 @@ export interface ClientFull extends Client {
   emails: Email[];
   sold_by_user: User | null;
   created_by_user: User | null;
-  commercial_details: CommercialClientDetails | null;
+  details: CommercialClientDetails | null;
 
 }
 

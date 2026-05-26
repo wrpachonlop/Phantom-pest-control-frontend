@@ -390,10 +390,10 @@ export default function ClientDetailPage() {
                       {/* Detalles de Identidad y Envío */}
                       <div className="space-y-3.5">
                         <h4 className="text-xs font-semibold text-gray-400 uppercase">Business Identity</h4>
-                        <InfoRow label="Company Name" value={client.commercial_details?.company_name || "—"} />
-                        <InfoRow label="Contact Person" value={client.commercial_details?.contact_person_name || "—"} />
-                        <InfoRow label="Service Address" value={client.commercial_details?.service_address || "—"} />
-                        <InfoRow label="Billing Address" value={client.commercial_details?.billing_address || "—"} />
+                        <InfoRow label="Company Name" value={client.details?.company_name || "—"} />
+                        <InfoRow label="Contact Person" value={client.details?.contact_person_name || "—"} />
+                        <InfoRow label="Service Address" value={client.details?.service_address || "—"} />
+                        <InfoRow label="Billing Address" value={client.details?.billing_address || "—"} />
                       </div>
 
                       {/* Detalles Financieros y de Agenda */}
@@ -401,21 +401,21 @@ export default function ClientDetailPage() {
                         <h4 className="text-xs font-semibold text-gray-400 uppercase">Financial & Schedule Terms</h4>
                         <InfoRow 
                           label="Billing Terms" 
-                          value={client.commercial_details?.billing_terms?.replace("_", " ").toUpperCase() || "—"} 
+                          value={client.details?.billing_terms?.replace("_", " ").toUpperCase() || "—"} 
                         />
                         <InfoRow 
                           label="Initial Setup Cost" 
-                          value={client.commercial_details?.initial_setup_cost ? `$${Number(client.commercial_details.initial_setup_cost).toFixed(2)}` : "—"} 
+                          value={client.details?.initial_setup_cost ? `$${Number(client.details.initial_setup_cost).toFixed(2)}` : "—"} 
                         />
                         <InfoRow 
                           label="Recurring Service Cost" 
-                          value={client.commercial_details?.recurring_service_cost ? `$${Number(client.commercial_details.recurring_service_cost).toFixed(2)}` : "—"} 
+                          value={client.details?.recurring_service_cost ? `$${Number(client.details.recurring_service_cost).toFixed(2)}` : "—"} 
                         />
                         <InfoRow 
                           label="Service Frequency" 
                           value={
-                            client.commercial_details?.service_frequency 
-                              ? `${client.commercial_details.service_frequency}${client.commercial_details.frequency_interval ? ` (Every ${client.commercial_details.frequency_interval})` : ''}`
+                            client.details?.service_frequency 
+                              ? `${client.details.service_frequency}${client.details.frequency_interval ? ` (Every ${client.details.frequency_interval})` : ''}`
                               : "—"
                           } 
                         />
@@ -423,16 +423,16 @@ export default function ClientDetailPage() {
                     </div>
                     
                     {/* Metadatos de Aprobación Final */}
-                    {client.commercial_details?.approved_by_name && (
+                    {client.details?.approved_by_name && (
                       <div className="bg-green-50/50 border border-green-100 rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                         <div>
                           <span className="text-gray-500 block">Authorized Proposal Approved By</span>
-                          <span className="font-bold text-green-900 text-sm">{client.commercial_details.approved_by_name}</span>
+                          <span className="font-bold text-green-900 text-sm">{client.details.approved_by_name}</span>
                         </div>
                         <div>
                           <span className="text-gray-500 block">Approval Date</span>
                           <span className="font-bold text-green-900 text-sm">
-                            {client.commercial_details.approved_date ? formatDateOnly(client.commercial_details.approved_date) : "—"}
+                            {client.details.approved_date ? formatDateOnly(client.details.approved_date) : "—"}
                           </span>
                         </div>
                       </div>
