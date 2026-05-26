@@ -142,7 +142,7 @@ export default function ClientDetailPage() {
 
  if (isCommercial) {
     // Aseguramos un fallback en string plano para el flujo comercial
-    const wfStatus = client.workflow_status ?? "assigned";
+    const wfStatus = client.details?.workflow_status ?? "assigned";
     
     badgeColor = COMMERCIAL_STATUS_COLORS[wfStatus as keyof typeof COMMERCIAL_STATUS_COLORS] || COMMERCIAL_STATUS_COLORS["assigned"];
     dotColor = COMMERCIAL_STATUS_COLORS[wfStatus as keyof typeof COMMERCIAL_STATUS_COLORS] || COMMERCIAL_STATUS_COLORS["assigned"];
