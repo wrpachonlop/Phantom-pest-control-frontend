@@ -389,10 +389,10 @@ export const CommercialFollowUpModal: React.FC<FollowUpFormProps> = ({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={commercialTransitionMutation.isPending}
               className="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:bg-amber-400"
             >
-              {isSubmitting ? "Saving..." : "Register"}
+              {commercialTransitionMutation.isPending ? "Saving..." : "Register"}
             </button>
           </div>
         </form>
