@@ -215,6 +215,10 @@ export const commercialApi = {
   // Endpoint para crear inspector externo (el que no tiene login)
   createExternalInspector: (data: { full_name: string; email: string }) =>
     http.post("/admin/inspectors", data).then((r) => r.data),
+
+  // NUEVO: Dispara la máquina de estados estricta del pipeline comercial
+  transitionWorkflow: (clientId: string, data: any) =>
+    http.post(`/clients/${clientId}/commercial/transition`, data).then((r) => r.data),
 };
 
 // ── Locations API ─────────────────────────────────────────

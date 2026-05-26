@@ -1,7 +1,10 @@
+import { commercialApi } from "@/services/api";
 import { COMMERCIAL_TRANSITIONS } from "@/utils/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { clsx } from "clsx";
 import React from "react";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 
 interface FollowUpFormProps {
   currentWorkflowStatus: string; // Ej: "assigned"
@@ -53,6 +56,22 @@ export const CommercialFollowUpModal: React.FC<FollowUpFormProps> = ({
       next_status: allowedNextStatuses[0] || "",
     },
   });
+  const qc = useQueryClient();
+
+  const commercialTransitionMutation = useMutation({
+    mutationFn: ({ clientId, payload }: { clientId: string; payload: any }) =>
+      commercialApi.transitionWorkflow(clientId, payload), // <--- ¡Llamada ultra limpia!
+    onSuccess: () => {
+      toast.success("Commercial stage updated successfully");
+      qc.invalidateQueries({ queryKey: ["follow-ups", clientId] });
+      qc.invalidateQueries({ queryKey: ["client", clientId] });
+      onClose();
+    },
+    onError: (error: any) => {
+      console.error("Workflow transition failed:", error);
+      toast.error(error.response?.data?.error || "Failed to update commercial stage");
+    }
+  });
 
   const selectedStatus = watch("next_status");
   const showFullBusinessForm = selectedStatus === "approved";
@@ -80,6 +99,31 @@ export const CommercialFollowUpModal: React.FC<FollowUpFormProps> = ({
     try {
       // Tu llamada a la API (Ej: axios.post(`/api/v1/clients/${clientId}/workflow`, data))
       // Esto actualizará tanto commercial_client_details como creará el log de interacción.
+
+      const payload = {
+        to_status: data.next_status, // <--- Sincronizado con 'to_status' de Go
+        proposal_drive_link: data.proposal_drive_link || null,
+        next_followup_date: data.next_status === "pending" ? data.next_followup_date : null,
+        notes: data.notes || null,
+
+        // Perfil e identidad si el estado cambia a approved
+        company_name: data.next_status === "approved" ? data.company_name : null,
+        contact_person_name: data.next_status === "approved" ? data.contact_person_name : null,
+        service_address: data.next_status === "approved" ? data.service_address : null,
+        billing_address: data.next_status === "approved" ? data.billing_address : null,
+        billing_same_as_service: data.next_status === "approved" ? data.same_as_service : false,
+
+        // Datos financieros y de aprobación
+        approved_by_name: data.next_status === "approved" ? data.approved_by_name : null,
+        approved_date: data.next_status === "approved" ? data.approved_date : null,
+        initial_setup_cost: data.next_status === "approved" ? Number(data.initial_setup_cost) : null,
+        recurring_service_cost: data.next_status === "approved" ? Number(data.recurring_service_cost) : null,
+        service_frequency: data.next_status === "approved" ? data.service_frequency : null,
+        frequency_interval: data.next_status === "approved" && ["daily", "weekly", "monthly"].includes(data.service_frequency)
+          ? Number(data.frequency_interval)
+          : null,
+        billing_terms: data.next_status === "approved" ? data.billing_terms : null,
+      };
       
       onSuccess();
       onClose();
