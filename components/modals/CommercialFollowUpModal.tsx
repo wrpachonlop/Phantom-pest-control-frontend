@@ -124,7 +124,7 @@ export const CommercialFollowUpModal: React.FC<FollowUpFormProps> = ({
           : null,
         billing_terms: data.next_status === "approved" ? data.billing_terms : null,
       };
-      
+      commercialTransitionMutation.mutate({ clientId, payload });
       onSuccess();
       onClose();
     } catch (error) {
