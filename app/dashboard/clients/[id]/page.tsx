@@ -20,14 +20,14 @@ import { EditClientModal } from "@/components/modals/EditClientModal";
 import { formatDateOnly } from "@/src/lib/utils";
 import { CommercialFollowUpModal } from "@/components/modals/CommercialFollowUpModal";
 
-type Tab = "follow-ups" | "notes" | "audit";
+type Tab = "overview" | "follow-ups" | "notes" | "audit";
 
 export default function ClientDetailPage() {
 
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const qc = useQueryClient();
-  const [activeTab, setActiveTab] = useState<Tab>("follow-ups");
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [newNote, setNewNote] = useState("");
@@ -237,96 +237,14 @@ export default function ClientDetailPage() {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Left panel - client info */}
-        <div className="w-72 flex-shrink-0 border-r border-gray-200 bg-white overflow-y-auto p-5 space-y-5">
-
-          {/* Contact info */}
-          <Section title="Contact">
-            {client.phones.map((p) => (
-              <div key={p.id} className="flex items-center gap-2 text-sm text-gray-700">
-                <Phone className="h-3.5 w-3.5 text-gray-400" />
-                <span>{p.phone_number}</span>
-                {p.label !== "primary" && <span className="text-xs text-gray-400">({p.label})</span>}
-              </div>
-            ))}
-            {client.emails.map((e) => (
-              <div key={e.id} className="flex items-center gap-2 text-sm text-gray-700">
-                <Mail className="h-3.5 w-3.5 text-gray-400" />
-                <span className="truncate">{e.email}</span>
-              </div>
-            ))}
-            {client.phones.length === 0 && client.emails.length === 0 && (
-              <p className="text-xs text-gray-400 italic">No contact info</p>
-            )}
-          </Section>
-
-          {/* Location */}
-          {client.location_value && (
-            <Section title="Location">
-              <div className="flex items-start gap-2 text-sm text-gray-700">
-                <MapPin className="h-3.5 w-3.5 text-gray-400 mt-0.5" />
-                <span className="capitalize">{client.location_type}: {client.location_value}</span>
-              </div>
-            </Section>
-          )}
-
-          {/* Key dates */}
-          <Section title="Dates">
-            <InfoRow label="Contact Date" value={ formatDateOnly(client.client_contact_date) } />
-            <InfoRow
-              label="First Follow-up"
-              value={client.first_contact_date
-                ? formatDateOnly(client.first_contact_date)
-                : "—"
-              }
-            />
-            {client.sold_date && (
-              <InfoRow label="Sold Date" value={formatDateOnly(client.sold_date)} />
-            )}
-          </Section>
-
-          {/* Pest issues */}
-          {client.pest_issues.length > 0 && (
-            <Section title="Pest Issues">
-              <div className="flex flex-wrap gap-1.5">
-                {client.pest_issues.map((pi) => (
-                  <span
-                    key={pi.id}
-                    className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600 capitalize"
-                  >
-                    {pi.name}
-                  </span>
-                ))}
-              </div>
-            </Section>
-          )}
-
-          {/* Sales info */}
-          {client.status === "green" && (
-            <Section title="Sale Info">
-              {client.sale_range && <InfoRow label="Sale Range" value={client.sale_range} />}
-              {client.sold_by_user && (
-                <InfoRow
-                  label="Sold By"
-                  value={client.sold_by_user.full_name || client.sold_by_user.email}
-                />
-              )}
-            </Section>
-          )}
-
-          {/* Problem description */}
-          {client.problem_description && (
-            <Section title="Problem Description">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{client.problem_description}</p>
-            </Section>
-          )}
-        </div>
+        
 
         {/* Right panel - tabs */}
         <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
+          
           {/* Tab bar */}
           <div className="flex border-b border-gray-200 bg-white px-6">
-            {(["follow-ups", "notes", "audit"] as Tab[]).map((tab) => (
+            {(["overview", "follow-ups", "notes", "audit"] as Tab[]).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -337,6 +255,7 @@ export default function ClientDetailPage() {
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 )}
               >
+                {tab === "overview" && (client.property_type === "commercial" ? <Building2 className="h-4 w-4" /> : <Home className="h-4 w-4" />)}
                 {tab === "follow-ups" && <FileText className="h-4 w-4" />}
                 {tab === "notes" && <FileText className="h-4 w-4" />}
                 {tab === "audit" && <Activity className="h-4 w-4" />}
@@ -352,6 +271,176 @@ export default function ClientDetailPage() {
 
           {/* Tab content */}
           <div className="flex-1 overflow-y-auto p-5">
+              {/* Overview */}
+              {activeTab === "overview" && (
+              <div className="space-y-6 max-w-5xl">
+                {/* Grid Principal: Se adapta a 1 columna en móvil y 3 columnas en pantallas grandes */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  
+                  {/* Tarjeta 1: Datos de Contacto y Ubicación */}
+                  <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm space-y-4">
+                    <Section title="Contact Information">
+                      {client.phones.map((p) => (
+                        <div key={p.id} className="flex items-center gap-3 text-sm text-gray-700 py-1 border-b border-gray-50 last:border-0">
+                          <Phone className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                          <span className="font-medium">{p.phone_number}</span>
+                          {p.label !== "primary" && <span className="text-xs text-gray-400 capitalize">({p.label})</span>}
+                        </div>
+                      ))}
+                      {client.emails.map((e) => (
+                        <div key={e.id} className="flex items-center gap-3 text-sm text-gray-700 py-1 border-b border-gray-50 last:border-0">
+                          <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                          <span className="truncate font-medium">{e.email}</span>
+                        </div>
+                      ))}
+                      {client.phones.length === 0 && client.emails.length === 0 && (
+                        <p className="text-xs text-gray-400 italic">No contact info registered.</p>
+                      )}
+                    </Section>
+
+                    {client.location_value && (
+                      <Section title="Location Details">
+                        <div className="flex items-start gap-2.5 text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                          <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <span className="text-xs text-gray-400 block capitalize">{client.location_type}</span>
+                            <span className="font-medium">{client.location_value}</span>
+                          </div>
+                        </div>
+                      </Section>
+                    )}
+                  </div>
+
+                  {/* Tarjeta 2: Fechas Clave y Clasificación */}
+                  <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm space-y-4">
+                    <Section title="Key Milestones">
+                      <div className="space-y-2">
+                        <InfoRow label="Contact Date" value={formatDateOnly(client.client_contact_date)} />
+                        <InfoRow
+                          label="First Follow-up"
+                          value={client.first_contact_date ? formatDateOnly(client.first_contact_date) : "—"}
+                        />
+                        {client.sold_date && (
+                          <InfoRow label="Sold Date" value={formatDateOnly(client.sold_date)} />
+                        )}
+                      </div>
+                    </Section>
+
+                    {client.pest_issues.length > 0 && (
+                      <Section title="Active Pest Issues">
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          {client.pest_issues.map((pi) => (
+                            <span
+                              key={pi.id}
+                              className="rounded-full bg-red-50 border border-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700 capitalize"
+                            >
+                              {pi.name}
+                            </span>
+                          ))}
+                        </div>
+                      </Section>
+                    )}
+
+                    {client.status === "green" && (
+                      <Section title="Sales Metadata">
+                        <div className="space-y-2">
+                          {client.sale_range && <InfoRow label="Sale Range" value={client.sale_range} />}
+                          {client.sold_by_user && (
+                            <InfoRow
+                              label="Sold By"
+                              value={client.sold_by_user.full_name || client.sold_by_user.email}
+                            />
+                          )}
+                        </div>
+                      </Section>
+                    )}
+                  </div>
+
+                  {/* Tarjeta 3: Descripción del Problema */}
+                  <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                    <Section title="Problem Description">
+                      {client.problem_description ? (
+                        <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100 min-h-[100px]">
+                          {client.problem_description}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-gray-400 italic">No description provided.</p>
+                      )}
+                    </Section>
+                  </div>
+                </div>
+
+                {/* BLOQUE DINÁMICO EXCLUSIVO: Si el cliente es comercial y tiene datos del workflow */}
+                {isCommercial && (
+                  <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-6">
+                    <div className="border-b border-gray-100 pb-3 flex items-center justify-between">
+                      <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-amber-600" />
+                        Commercial Contract & Operations Profile
+                      </h3>
+                      {client.inspector_name && (
+                        <span className="text-xs bg-amber-50 text-amber-800 border border-amber-200 rounded-md px-2.5 py-1 font-medium">
+                          Assigned Inspector: <strong>{client.inspector_name}</strong>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Sub-grid de datos comerciales */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Detalles de Identidad y Envío */}
+                      <div className="space-y-3.5">
+                        <h4 className="text-xs font-semibold text-gray-400 uppercase">Business Identity</h4>
+                        <InfoRow label="Company Name" value={client.commercial_details?.company_name || "—"} />
+                        <InfoRow label="Contact Person" value={client.commercial_details?.contact_person_name || "—"} />
+                        <InfoRow label="Service Address" value={client.commercial_details?.service_address || "—"} />
+                        <InfoRow label="Billing Address" value={client.commercial_details?.billing_address || "—"} />
+                      </div>
+
+                      {/* Detalles Financieros y de Agenda */}
+                      <div className="space-y-3.5">
+                        <h4 className="text-xs font-semibold text-gray-400 uppercase">Financial & Schedule Terms</h4>
+                        <InfoRow 
+                          label="Billing Terms" 
+                          value={client.commercial_details?.billing_terms?.replace("_", " ").toUpperCase() || "—"} 
+                        />
+                        <InfoRow 
+                          label="Initial Setup Cost" 
+                          value={client.commercial_details?.initial_setup_cost ? `$${Number(client.commercial_details.initial_setup_cost).toFixed(2)}` : "—"} 
+                        />
+                        <InfoRow 
+                          label="Recurring Service Cost" 
+                          value={client.commercial_details?.recurring_service_cost ? `$${Number(client.commercial_details.recurring_service_cost).toFixed(2)}` : "—"} 
+                        />
+                        <InfoRow 
+                          label="Service Frequency" 
+                          value={
+                            client.commercial_details?.service_frequency 
+                              ? `${client.commercial_details.service_frequency}${client.commercial_details.frequency_interval ? ` (Every ${client.commercial_details.frequency_interval})` : ''}`
+                              : "—"
+                          } 
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Metadatos de Aprobación Final */}
+                    {client.commercial_details?.approved_by_name && (
+                      <div className="bg-green-50/50 border border-green-100 rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div>
+                          <span className="text-gray-500 block">Authorized Proposal Approved By</span>
+                          <span className="font-bold text-green-900 text-sm">{client.commercial_details.approved_by_name}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 block">Approval Date</span>
+                          <span className="font-bold text-green-900 text-sm">
+                            {client.commercial_details.approved_date ? formatDateOnly(client.commercial_details.approved_date) : "—"}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
             {/* Follow-ups */}
             {activeTab === "follow-ups" && (
               <div className="space-y-3">

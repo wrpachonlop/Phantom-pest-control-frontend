@@ -145,6 +145,46 @@ export interface ClientFull extends Client {
   emails: Email[];
   sold_by_user: User | null;
   created_by_user: User | null;
+  commercial_details: CommercialClientDetails | null;
+
+}
+
+export interface CommercialClientDetails {
+  id: string;
+  client_id: string;
+  workflow_status: string; // O el enum específico si lo tienes tipado
+  lead_source: string;
+  crew_member_id: string | null;
+  inspector_id: string;
+  company_name: string | null;
+  contact_person_name: string | null;
+  service_address: string | null;
+  billing_address: string | null;
+  billing_same_as_service: boolean;
+  billing_terms: string | null;
+  initial_setup_cost: number | null;
+  recurring_service_cost: number | null;
+  service_frequency: string | null;
+  frequency_interval: number | null;
+  phone_number: string | null;
+  email: string | null;
+  notes: string | null;
+  proposal_drive_link: string | null;
+  approved_by_name: string | null;
+  approved_date: string | null; // ISOString o YYYY-MM-DD
+  approved_by_user_id: string | null;
+  next_followup_date: string | null;
+  installation_date: string | null;
+  installation_notes: string | null;
+  cancelled_date: string | null;
+  cancel_reason: string | null;
+  created_at: string;
+  updated_at: string;
+  inspector?: {
+    id: string;
+    full_name: string;
+    email: string;
+  } | null;
 }
 
 export interface FollowUp {
