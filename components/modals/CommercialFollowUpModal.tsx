@@ -74,14 +74,6 @@ export const CommercialFollowUpModal: React.FC<FollowUpFormProps> = ({
     }
   }, [currentWorkflowStatus, reset, allowedNextStatuses]);
 
-  console.log("████ DEBUG COMMERCIAL WORKFLOW ████", {
-    clientId,
-    currentWorkflowStatusRecibido: currentWorkflowStatus,
-    typeOf_currentWorkflowStatus: typeof currentWorkflowStatus,
-    allowedNextStatusesCalculados: allowedNextStatuses,
-    objetoTransicionesCompleto: COMMERCIAL_TRANSITIONS,
-    objetoTransicionesParaEsteEstado: COMMERCIAL_TRANSITIONS[currentWorkflowStatus]
-  });
   const qc = useQueryClient();
 
   const commercialTransitionMutation = useMutation({
