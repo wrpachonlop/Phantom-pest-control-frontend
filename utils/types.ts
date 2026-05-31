@@ -12,6 +12,16 @@ export type AuditAction = "create" | "update" | "delete";
 export type UserRole = "admin" | "user" | "crew";
 
 
+// Reglas estrictas de transición de estados comerciales
+export const COMMERCIAL_TRANSITION_RULES: Record<string, string[]> = {
+  assigned:  ["approved", "pending", "cancelled"], // Desde assigned puede avanzar a propuesta aprobada, pendiente o cancelarse
+  pending:   ["approved", "cancelled"],           // Desde pendiente va a approved o se cancela
+  approved:  ["installed", "cancelled"],          // Desde aprobado el contrato pasa estrictamente a instalación o se cancela
+  declined:  ["pending", "cancelled"],           // Si fue declinado, se puede renegociar (pending) o cancelar
+  installed: [],                                  // Estado final operativo del flujo comercial actual
+  cancelled: []                                   // Estado final de salida
+};
+
 // Definimos las transiciones permitidas según el prompt
 export const COMMERCIAL_TRANSITIONS: Record<string, string[]> = {
   assigned: ["pending", "approved", "declined"],

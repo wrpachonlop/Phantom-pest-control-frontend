@@ -34,6 +34,11 @@ interface FollowUpInputs {
   recurring_service_cost: number;
   service_frequency: "daily" | "weekly" | "monthly" | "bi_monthly" | "quarterly" | "tri_annual" | "semi_annual" | "seasonal" | "yearly";
   frequency_interval?: number;
+
+  // ── NUEVO: Campos obligatorios para la transición a INSTALLED
+  installation_date: string;
+  crew_member_id: string;
+  installation_notes?: string;
 }
 
 export const CommercialFollowUpModal: React.FC<FollowUpFormProps> = ({
@@ -123,6 +128,10 @@ export const CommercialFollowUpModal: React.FC<FollowUpFormProps> = ({
           ? Number(data.frequency_interval)
           : null,
         billing_terms: data.next_status === "approved" ? data.billing_terms : null,
+
+        installation_date: data.next_status === "installed" ? `${data.installation_date}T00:00:00Z` : null,
+        crew_member_id: data.next_status === "installed" ? data.crew_member_id : null,
+        installation_notes: data.next_status === "installed" ? data.installation_notes || null : null,
       };
       commercialTransitionMutation.mutate({ clientId, payload });
       onSuccess();
@@ -366,7 +375,45 @@ export const CommercialFollowUpModal: React.FC<FollowUpFormProps> = ({
               )}
             </div>
           )}
+            {selectedStatus === "installed" && (
+              <div className="mt-4 border-t border-gray-200 pt-4 space-y-4 animate-fade-in">
+                <h4 className="text-sm font-medium text-amber-700 bg-amber-50 p-2 rounded">
+                  Required Installation Settings
+                </h4>
 
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700">Installation Date *</label>
+                    <input
+                      type="date"
+                      {...register("installation_date", { required: selectedStatus === "installed" })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700">Assigned Crew / Technician *</label>
+                    <select
+                      {...register("crew_member_id", { required: selectedStatus === "installed" })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm"
+                    >
+                      <option value="">Select crew...</option>
+                      {/* Aquí puedes mapear tus técnicos reales. Uso tu id de control como fallback: */}
+                      <option value="42f8c55c-4740-4cb1-8ba2-8cf9269d018b">test crew</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700">Installation Notes</label>
+                  <textarea
+                    rows={2}
+                    placeholder="Special placement of bait stations, entry codes..."
+                    {...register("installation_notes")}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm"
+                  />
+                </div>
+              </div>
+            )}
           {/* Notas de la interacción */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Follow-up Notes</label>
