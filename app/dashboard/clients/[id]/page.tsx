@@ -628,7 +628,7 @@ export default function ClientDetailPage() {
       )}
       {showWorkflowModal && (
         <CommercialFollowUpModal
-            currentWorkflowStatus={client.workflow_status ?? "assigned"}
+            currentWorkflowStatus={client.details?.workflow_status ?? "assigned"}
             clientId={client.id}
             onClose={() => setShowWorkflowModal(false)}
             onSuccess={() => {
