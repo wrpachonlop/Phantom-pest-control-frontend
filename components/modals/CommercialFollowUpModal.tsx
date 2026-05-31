@@ -55,12 +55,24 @@ export const CommercialFollowUpModal: React.FC<FollowUpFormProps> = ({
     watch,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<FollowUpInputs>({
     defaultValues: {
       next_status: allowedNextStatuses[0] || "",
     },
   });
+
+  React.useEffect(() => {
+    if (allowedNextStatuses.length > 0) {
+      reset({
+        next_status: allowedNextStatuses[0], // ◄ Forzará a que muestre 'INSTALLED' de inmediato si está en Approved
+        proposal_drive_link: "",
+        next_followup_date: "",
+        notes: ""
+      });
+    }
+  }, [currentWorkflowStatus, reset, allowedNextStatuses]);
   const qc = useQueryClient();
 
   const commercialTransitionMutation = useMutation({
