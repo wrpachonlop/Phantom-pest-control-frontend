@@ -142,7 +142,7 @@ export const CommercialFollowUpModal: React.FC<FollowUpFormProps> = ({
           : null,
         billing_terms: data.next_status === "approved" ? data.billing_terms : null,
 
-        installation_date: data.next_status === "installed" ? `${data.installation_date}T00:00:00Z` : null,
+        installation_date: data.next_status === "installed" ? data.installation_date : null,
         crew_member_id: data.next_status === "installed" ? data.crew_member_id : null,
         installation_notes: data.next_status === "installed" ? data.installation_notes || null : null,
       };
